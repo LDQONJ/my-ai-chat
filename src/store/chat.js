@@ -10,7 +10,8 @@ export const useChatStore = defineStore('chat', {
       1: []
     },
     isStreaming: false,
-    sidebarVisible: true
+    sidebarVisible: true,
+    isThink: false
   }),
 
   getters: {
@@ -26,6 +27,8 @@ export const useChatStore = defineStore('chat', {
       const list = this.messagesMap[this.activeId]
       this.isStreaming = true
 
+      const think = this.isThink
+
       // 1️⃣ 用户消息
       list.push({
         id: Date.now(),
@@ -38,6 +41,7 @@ export const useChatStore = defineStore('chat', {
         id: Date.now() + 1,
         role: 'assistant',
         blocks: [],
+        thinking: '', // 存储思考内容
         streaming: true
       }
 
@@ -49,12 +53,13 @@ export const useChatStore = defineStore('chat', {
       // 3️⃣ 创建解析器
       let pending = false
 
-      const parser = createMarkdownStreamParser((blocks) => {
+      const parser = createMarkdownStreamParser((res) => {
         if (pending) return
 
         pending = true
         requestAnimationFrame(() => {
-          currentMsg.blocks = blocks
+          currentMsg.blocks = res.blocks
+          currentMsg.thinking = res.thinking
           pending = false
         })
       })
@@ -62,10 +67,10 @@ export const useChatStore = defineStore('chat', {
       // 4️⃣ 调用流式接口
       await streamChat(list, (chunk) => {
         parser.parse(chunk)
-      })
+      }, think)
 
       parser.end()
-      currentMsg.blocks = parser.getBlocks()
+      // 这里不需要重新赋值 blocks，因为 update() 已经处理了
       currentMsg.streaming = false
       this.isStreaming = false
     },
@@ -83,6 +88,10 @@ export const useChatStore = defineStore('chat', {
 
     setSidebarVisible(visible) {
       this.sidebarVisible = visible
+    },
+
+    toggleThink() {
+      this.isThink = !this.isThink
     }
   }
 })

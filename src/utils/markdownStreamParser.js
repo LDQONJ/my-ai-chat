@@ -5,6 +5,7 @@ export function createMarkdownStreamParser(onUpdate) {
     let inCode = false
     let codeLang = ''
     let temp = ''
+    let thinkingContent = '' // 专门存储思考内容
 
     function pushBlock() {
         if (!temp) return
@@ -18,7 +19,16 @@ export function createMarkdownStreamParser(onUpdate) {
         temp = ''
     }
 
-    function parse(chunk) {
+    function parse(chunkObj) {
+        // 如果是思考内容，直接追加到 thinkingContent
+        if (chunkObj.type === 'thinking') {
+            thinkingContent += chunkObj.content
+            update()
+            return
+        }
+
+        // 如果是普通内容，按原逻辑解析 markdown
+        const chunk = chunkObj.content
         buffer += chunk
 
         let i = 0
@@ -49,20 +59,26 @@ export function createMarkdownStreamParser(onUpdate) {
         }
 
         buffer = buffer.slice(i)
+        update()
+    }
 
-        onUpdate([
-            ...blocks,
-            temp && {
-                type: inCode ? 'code' : 'text',
-                lang: codeLang,
-                content: temp
-            }
-        ].filter(Boolean))
+    function update() {
+        onUpdate({
+            thinking: thinkingContent,
+            blocks: [
+                ...blocks,
+                temp && {
+                    type: inCode ? 'code' : 'text',
+                    lang: codeLang,
+                    content: temp
+                }
+            ].filter(Boolean)
+        })
     }
 
     function end() {
         pushBlock()
-        onUpdate(blocks)
+        update()
     }
 
     function getBlocks() {

@@ -4,6 +4,21 @@
         <template v-if="message.role === 'assistant'">
             <div class="bubble">
 
+                <!-- 思考部分 -->
+                <div v-if="message.thinking" class="thinking-box">
+                    <div class="thinking-header" @click="showThinking = !showThinking">
+                        <div class="thinking-title">
+                            <svg :class="{ 'rotate': !showThinking }" width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>{{ isThinking ? '正在思考...' : '已完成思考' }}</span>
+                        </div>
+                    </div>
+                    <div v-show="showThinking" class="thinking-content">
+                        {{ message.thinking }}
+                    </div>
+                </div>
+
                 <template v-for="(block, i) in message.blocks" :key="i">
 
                     <!-- 文本 -->
@@ -42,10 +57,17 @@ import MarkdownIt from 'markdown-it'
 import hljs from 'highlight.js'
 import 'highlight.js/styles/github-dark.css'
 import DOMPurify from 'dompurify'
-import { nextTick, computed } from 'vue'
+import { nextTick, computed, ref } from 'vue'
 
 const props = defineProps({
     message: Object
+})
+
+const showThinking = ref(true)
+
+// 是否正在思考中
+const isThinking = computed(() => {
+    return props.message.streaming && !props.message.blocks.length
 })
 
 const md = new MarkdownIt({
@@ -99,6 +121,48 @@ const copy = (text) => {
     border-radius: 26px;
     font-size: 17px;
     line-height: 1.5;
+}
+
+/* 思考部分样式 */
+.thinking-box {
+    margin-bottom: 12px;
+    border-left: 2px solid #374151;
+    padding-left: 12px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 4px;
+}
+
+.thinking-header {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    color: #94a3b8;
+    font-size: 14px;
+    padding: 4px 0;
+}
+
+.thinking-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.thinking-title svg {
+    transition: transform 0.2s ease;
+}
+
+.thinking-title svg.rotate {
+    transform: rotate(-90deg);
+}
+
+.thinking-content {
+    color: #64748b;
+    font-size: 14px;
+    font-style: italic;
+    white-space: pre-wrap;
+    padding: 8px 0;
+    line-height: 1.6;
 }
 
 /* 修改：让AI消息铺满整个界面 */
