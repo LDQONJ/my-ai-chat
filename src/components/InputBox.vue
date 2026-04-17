@@ -102,7 +102,7 @@ const watchText = () => {
   
 <style scoped>
 .input-wrap {
-    padding: 14px;
+    padding: 14px 0; /* 只留上下 padding，左右对齐由父容器控制 */
     background: transparent;
     max-width: 800px;
     width: 100%;

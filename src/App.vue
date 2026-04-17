@@ -127,8 +127,9 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0 0 0 20px;
+  padding: 0 20px; /* 统一左右内边距 */
   overflow-y: auto;
+  scrollbar-gutter: stable; /* 预留滚动条位置，防止内容中心偏移 */
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
   transition: scrollbar-color 0.3s ease;
@@ -156,14 +157,13 @@ body {
 .input-container {
   position: fixed;
   bottom: 0;
-  /* 调整为40px，为footer留出空间 */
-  left: calc(var(--sidebar-width) + 20px);
-  /* 侧边栏宽度 */
-  right: 20px;
+  left: var(--sidebar-width);
+  right: 0;
   display: flex;
   justify-content: center;
   background: transparent;
-  padding: 20px 0;
+  padding: 20px;
+  padding-right: calc(20px + 6px); /* 20px 基础 padding + 6px 滚动条预留宽度 */
   z-index: 10;
   transition: all 0.3s ease;
 }
@@ -171,16 +171,15 @@ body {
 .footer {
   position: fixed;
   bottom: 0;
-  left: calc(var(--sidebar-width) + 20px);
-  /* 与输入框对齐 */
-  right: 20px;
+  left: var(--sidebar-width);
+  right: 0;
   text-align: center;
   padding: 10px 0;
+  padding-right: 6px; /* 同步滚动条宽度 */
   background: #0f172a;
   color: rgba(255, 255, 255, 0.6);
   font-size: 12px;
   z-index: 5;
-  /* 低于输入框的z-index */
   transition: all 0.3s ease;
 }
 
