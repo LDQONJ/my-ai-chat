@@ -6,6 +6,7 @@ export async function streamChat(messages, onChunk, think = false) {
     const res = await fetch(`${host}/chat?text=${encodeURIComponent(userMessage[userMessage.length - 1].content)}&think=${think}`)
 
     const reader = res.body.getReader()
+    // eslint-disable-next-line no-undef
     const decoder = new TextDecoder('utf-8')
 
     let buffer = ''

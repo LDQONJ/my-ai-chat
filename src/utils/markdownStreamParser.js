@@ -1,6 +1,6 @@
 export function createMarkdownStreamParser(onUpdate) {
     let buffer = ''
-    let blocks = []
+    const blocks = []
 
     let inCode = false
     let codeLang = ''
