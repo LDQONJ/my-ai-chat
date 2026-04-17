@@ -1,6 +1,7 @@
 {
   // 可以通过点击访问@作为根目录的文件
   "compilerOptions": {
+    "ignoreDeprecations": "6.0",
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "bundler",
