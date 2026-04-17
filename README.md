@@ -42,8 +42,6 @@ npm install
 npm run dev
 ```
 
-应用将在 http://localhost:5173 启动
-
 ### 构建生产版本
 
 ```bash
@@ -85,7 +83,10 @@ GET /api/chat?message=你好，请介绍一下自己
 **响应：**
 ```json
 data:{"content":"你好！我是AI助手，很高兴为您服务。"}
+
 data:{"content":"我可以帮助您解答各种问题，提供信息和建议。"}
+
+data:{"done":true}
 ```
 
 ## 📁 项目结构
