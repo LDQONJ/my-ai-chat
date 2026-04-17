@@ -27,14 +27,9 @@ export async function streamChat(messages, onChunk, think = false) {
                 // console.log(jsonLine)
 
                 const json = JSON.parse(jsonLine)
-                const content = JSON.parse(json.content)
 
-
-                if (content.type === 'thinking') {
-                    onChunk({ type: 'thinking', content: content.content })
-
-                } else if (content.type === 'content') {
-                    onChunk({ type: 'content', content: content.content })
+                if (json.content) {
+                    onChunk(json)
                 }
             } catch (e) {
                 console.warn('parse error', e)

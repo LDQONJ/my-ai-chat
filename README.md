@@ -59,10 +59,10 @@ npm run preview
 
 ### 请求格式
 
-前端向AI服务发送GET请求，参数为聊天字符串：
+前端向AI服务发送GET请求，参数为聊天字符串以及是否开启思考模式：
 
 ```http
-GET /api/chat?message=你的聊天内容
+GET /api/chat?message=你的聊天内容&think=true
 ```
 
 ### 响应格式
@@ -70,21 +70,24 @@ GET /api/chat?message=你的聊天内容
 后端返回Flux<String>流式响应，数据格式为：
 
 ```json
-data:{"content":"AI回复内容"}
+data:{"content":"思考内容","type":"thinking"}
+data:{"content":"回复内容","type":"content"}
 ```
 
 ### 示例
 
 **请求：**
 ```http
-GET /api/chat?message=你好，请介绍一下自己
+GET /api/chat?message=你好，请介绍一下自己&think=true
 ```
 
 **响应：**
 ```json
-data:{"content":"你好！我是AI助手，很高兴为您服务。"}
+data:{"content":"好的，用户发来“你好”，看起来是打招呼。","type":"thinking"}
 
-data:{"content":"我可以帮助您解答各种问题，提供信息和建议。"}
+data:{"content":"你好！我是AI助手，很高兴为您服务。","type":"content"}
+
+data:{"content":"我可以帮助您解答各种问题，提供信息和建议。","type":"content"}
 
 data:{"done":true}
 ```

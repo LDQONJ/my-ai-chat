@@ -8,8 +8,10 @@
                 <div v-if="message.thinking" class="thinking-box">
                     <div class="thinking-header" @click="showThinking = !showThinking">
                         <div class="thinking-title">
-                            <svg :class="{ 'rotate': !showThinking }" width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <svg :class="{ 'rotate': !showThinking }" width="12" height="12" viewBox="0 0 24 24" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" />
                             </svg>
                             <span>{{ isThinking ? '正在思考...' : '已完成思考' }}</span>
                         </div>
@@ -32,10 +34,9 @@
                         </div>
 
                         <pre class="code-block">
-                <code ref="setCodeRef">{{ block.content }}</code>
-              </pre>
+                            <code ref="setCodeRef">{{ block.content }}</code>
+                        </pre>
                     </div>
-
                 </template>
 
                 <!-- 光标（流式时） -->
@@ -215,7 +216,14 @@ const copy = (text) => {
 }
 
 @keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0; }
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0;
+    }
 }
 </style>
