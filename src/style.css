@@ -1,0 +1,19 @@
+/* styles.css */
+:root {
+  --bg-main: hsl(222, 47%, 11%);
+  --bg-sidebar: #22283a;
+  --bg-hover: #434851;
+  --bg-active: #3b3d3d;
+  --bg-card: #1a2130;
+  --primary: #2563eb;
+  --text-main: #e5e7eb;
+  --text-sub: #94a3b8;
+  --border: rgba(255,255,255,0.05);
+}
+
+body {
+  margin: 0;
+  background: var(--bg-main);
+  color: var(--text-main);
+  font-family: -apple-system, BlinkMacSystemFont;
+}
