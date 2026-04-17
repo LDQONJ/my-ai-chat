@@ -181,6 +181,29 @@ const copy = (text) => {
 /* markdown */
 .markdown {
     line-height: 1.7;
+    word-break: break-word;
+}
+
+.markdown :deep(ul),
+.markdown :deep(ol) {
+    padding-left: 24px;
+    margin: 8px 0;
+}
+
+.markdown :deep(li) {
+    margin-bottom: 4px;
+}
+
+.markdown :deep(p) {
+    margin: 8px 0;
+}
+
+.markdown :deep(p:first-child) {
+    margin-top: 0;
+}
+
+.markdown :deep(p:last-child) {
+    margin-bottom: 0;
 }
 
 /* code */
