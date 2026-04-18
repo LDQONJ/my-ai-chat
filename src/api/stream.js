@@ -1,3 +1,4 @@
+import axios from 'axios';
 export async function streamChat(messages, onChunk, think = false) {
     console.log(messages)
     const userMessage = messages.filter(msg => msg.role === 'user')
@@ -6,8 +7,14 @@ export async function streamChat(messages, onChunk, think = false) {
     const token = localStorage.getItem('token');
     const headers = {};
     if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
+        headers['Authorization'] = `${token}`;
     }
+
+    axios.create({baseURL: host, timeout: 60000,}).post('/chat', {
+        sessionId,
+        text: userMessage[userMessage.length - 1].content,
+        think
+    })
 
     const res = await fetch(`${host}/chat?text=${encodeURIComponent(userMessage[userMessage.length - 1].content)}&think=${think}`, {
         headers

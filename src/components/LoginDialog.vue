@@ -52,6 +52,8 @@
 import { ref, reactive } from 'vue'
 import { userApi, codeApi } from '@/api/test'
 import { useUserStore } from '@/store/user'
+import { ElMessage } from 'element-plus'
+import { lo } from 'element-plus/es/locale/index.mjs';
 
 const props = defineProps({
   visible: Boolean
@@ -83,14 +85,14 @@ const close = () => {
 
 const handleSendCode = async () => {
   if (!form.email) {
-    alert('请先输入邮箱')
+    ElMessage.warning('请先输入邮箱')
     return
   }
   
   try {
     sendingCode.value = true
     await codeApi.sendCode(form.email)
-    alert('验证码已发送')
+    ElMessage.success('验证码已发送')
     
     const timer = setInterval(() => {
       countdown.value--
@@ -101,7 +103,7 @@ const handleSendCode = async () => {
       }
     }, 1000)
   } catch (err) {
-    alert(err.message || '发送失败')
+    ElMessage.error(err.message || '发送失败')
     sendingCode.value = false
   }
 }
@@ -109,14 +111,14 @@ const handleSendCode = async () => {
 const handleSubmit = async () => {
   loading.value = true
   try {
-    let res
+    let token
     if (isLoginMode.value) {
-      res = await userApi.login({
+      token = await userApi.login({
         username: form.username,
         password: form.password
       })
     } else {
-      res = await userApi.register({
+      token = await userApi.register({
         username: form.username,
         password: form.password,
         email: form.email,
@@ -124,17 +126,19 @@ const handleSubmit = async () => {
       })
     }
     
-    // 假设 res 包含 token 和 userInfo
-    if (res && res.token) {
-      userStore.setToken(res.token)
-      userStore.setUserInfo(res.user || { username: form.username, email: form.email })
+    if (token) {
+      localStorage.setItem('token', token)
+      const userInfo = await userApi.me()
+      if (userInfo) {
+        userStore.setUserInfo(userInfo || { username: form.username, email: form.email })
+      }
       emit('success')
       close()
     } else {
       throw new Error('响应数据异常')
     }
   } catch (err) {
-    alert(err.message || (isLoginMode.value ? '登录失败' : '注册失败'))
+    ElMessage.error(err.message || (isLoginMode.value ? '登录失败' : '注册失败'))
   } finally {
     loading.value = false
   }

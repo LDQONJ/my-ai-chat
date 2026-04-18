@@ -12,7 +12,7 @@ service.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
     if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`;
+      config.headers['Authorization'] = `${token}`;
     }
     return config;
   },
@@ -59,6 +59,13 @@ export const userApi = {
    */
   login(data) {
     return service.post('/users/login', data);
+  },
+
+  /**
+   * 用户信息
+   */
+  me() {
+    return service.get('/users/me');
   },
 };
 
