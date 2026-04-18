@@ -44,17 +44,47 @@
         {{ chat.title }}
       </div>
     </div>
+
+    <!-- 用户栏 -->
+    <div class="user-section" @click="handleUserClick">
+      <div class="user-info">
+        <div class="user-avatar">
+          <Icon :icon-class="'icon-user'" :font-size="20" />
+        </div>
+        <div class="user-detail" v-if="userStore.isLoggedIn">
+          <div class="username">{{ userStore.username }}</div>
+          <div class="email">{{ userStore.email }}</div>
+        </div>
+        <div class="user-detail" v-else>
+          <div class="login-tip">点击登录/注册</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 登录对话框 -->
+    <LoginDialog v-model:visible="showLoginDialog" />
   </div>
 </template>
   
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useChatStore } from '@/store/chat'
+import { useUserStore } from '@/store/user'
 import Icon from '@/components/common/Icon.vue'
+import LoginDialog from '@/components/LoginDialog.vue'
+
 const store = useChatStore()
+const userStore = useUserStore()
 
 const chats = computed(() => store.chatList)
 const activeId = computed(() => store.activeId)
+const showLoginDialog = ref(false)
+
+const handleUserClick = () => {
+  if (!userStore.isLoggedIn) {
+    showLoginDialog.value = true
+  }
+}
 
 const select = (id) => {
     store.setActive(id)
@@ -81,6 +111,9 @@ const createChat = () => {
     overflow: hidden;
     flex-shrink: 0;
     white-space: nowrap;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
 }
 
 .sidebar-hidden .sidebar {
@@ -98,6 +131,7 @@ const createChat = () => {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
+    flex-shrink: 0;
 }
 
 .collapse-btn {
@@ -131,6 +165,7 @@ const createChat = () => {
     border-radius: 25px; /* 左右两边半圆效果 */
     transition: all 0.2s ease;
     cursor: pointer;
+    flex-shrink: 0;
 }
 
 .new-chat:hover {
@@ -156,6 +191,12 @@ const createChat = () => {
     align-items: center;
 }
 
+.chat-list {
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 16px;
+}
+
 .chat-item {
     padding: 10px;
     border-radius: 8px;
@@ -170,5 +211,63 @@ const createChat = () => {
 
 .chat-item.active {
     background: var(--bg-hover);
+}
+
+.user-section {
+    padding: 12px;
+    border-top: 1px solid var(--border);
+    margin: 0 -16px;
+    padding-left: 16px;
+    padding-right: 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+    flex-shrink: 0;
+}
+
+.user-section:hover {
+    background: var(--bg-hover);
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--bg-active);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-sub);
+}
+
+.user-detail {
+    overflow: hidden;
+}
+
+.username {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.email {
+    font-size: 12px;
+    color: var(--text-sub);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.login-tip {
+    font-size: 14px;
+    color: var(--text-sub);
 }
 </style>

@@ -3,7 +3,15 @@ export async function streamChat(messages, onChunk, think = false) {
     const userMessage = messages.filter(msg => msg.role === 'user')
     if (!userMessage.length) return
     const host = import.meta.env.VITE_API_HOST;
-    const res = await fetch(`${host}/chat?text=${encodeURIComponent(userMessage[userMessage.length - 1].content)}&think=${think}`)
+    const token = localStorage.getItem('token');
+    const headers = {};
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const res = await fetch(`${host}/chat?text=${encodeURIComponent(userMessage[userMessage.length - 1].content)}&think=${think}`, {
+        headers
+    })
 
     const reader = res.body.getReader()
     // eslint-disable-next-line no-undef
