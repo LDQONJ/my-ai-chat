@@ -25,6 +25,16 @@ export default [
       'vue/no-v-html': 'warn', // 对 v-html 指令发出警告，防止 XSS 风险
       'vue/require-default-prop': 'off', // 关闭 props 默认值检查
       'vue/require-prop-types': 'off', // 关闭 props 类型检查
+      'vue/singleline-html-element-content-newline': 'off', // 关闭单行元素内容换行检查
+      'vue/html-self-closing': [
+        'warn',
+        {
+          html: {
+            void: 'always', // 允许 void 元素自闭合
+            component: 'always',
+          },
+        },
+      ],
     },
   },
   {
