@@ -31,9 +31,6 @@
     "javascript",
     "vue"
   ],
-  // Prettier 配置
-  "prettier.requireConfig": true,
-  "prettier.useEditorConfig": false,
   // CSS/SCSS 缩进配置
   "css.format.enable": true,
   "css.format.newlineBetweenRules": true,
