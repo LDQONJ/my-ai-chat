@@ -71,7 +71,7 @@ const isInputEmpty = computed(() => !text.value.trim());
 
 const send = () => {
   if (store.isStreaming) {
-    // 暂时不实现停止功能
+    store.stopStream();
     return;
   }
 

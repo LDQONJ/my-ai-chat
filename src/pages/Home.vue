@@ -46,17 +46,54 @@
 <script setup>
 import { ref, watch, nextTick, computed, onMounted, onUnmounted } from 'vue'
 import { useChatStore } from '@/store/chat'
+import { useUserStore } from '@/store/user'
+import { userApi, sessionApi} from '@/api/test'
 import Sidebar from '@/components/Sidebar.vue'
 import ChatWindow from '@/components/ChatWindow.vue'
 import InputBox from '@/components/InputBox.vue'
 import Icon from '@/components/common/Icon.vue'
 
 const store = useChatStore()
+const userStore = useUserStore()
 const messages = computed(() => store.messages)
 const mainRef = ref()
 const inputContainerRef = ref()
 const isAtBottom = ref(true)
 const isMobile = ref(false)
+
+// 页面加载时刷新用户信息
+const refreshUserInfo = async () => {
+  const token = localStorage.getItem('token')
+  if (token) {
+    try {
+      const userInfo = await userApi.me()
+      if (userInfo) {
+        userStore.setUserInfo(userInfo)
+      }
+    } catch (error) {
+      console.error('刷新用户信息失败:', error)
+      // 如果token无效，清除本地存储
+      localStorage.removeItem('token')
+      localStorage.removeItem('userInfo')
+      userStore.logout()
+    }
+  }
+}
+// 创建会话
+const createSession = async () => {
+  try {
+    const sessionId = await sessionApi.create()
+    if (sessionId) {
+      localStorage.setItem('sessionId', sessionId)
+      localStorage.setItem('isNewSession', 'true')
+      store.setActive(sessionId)
+      store.messagesMap[sessionId] = []
+      console.log('会话创建成功，sessionId:', sessionId)
+    }
+  } catch (error) {
+    console.error('创建会话失败:', error)
+  }
+}
 
 // 响应式处理侧边栏
 const checkWidth = () => {
@@ -84,6 +121,14 @@ let resizeObserver
 onMounted(() => {
   checkWidth()
   window.addEventListener('resize', checkWidth)
+
+  refreshUserInfo()
+  
+  // 区分刷新和重新打开：sessionStorage 在标签页关闭后会清除
+  if (!sessionStorage.getItem('is_session_active')) {
+    createSession()
+    sessionStorage.setItem('is_session_active', 'true')
+  }
 
   // 监听输入框高度变化
   if (inputContainerRef.value) {

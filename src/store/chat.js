@@ -1,17 +1,16 @@
 import { defineStore } from "pinia";
-import { streamChat } from "../api/stream";
+import { streamChat, generateTitle } from "../api/stream";
 import { createMarkdownStreamParser } from "../utils/markdownStreamParser";
 
 export const useChatStore = defineStore("chat", {
   state: () => ({
-    chatList: [{ id: 1, title: "新对话" }],
-    activeId: 1,
-    messagesMap: {
-      1: [],
-    },
+    chatList: [],
+    activeId: localStorage.getItem('sessionId') || null,
+    messagesMap: {},
     isStreaming: false,
     sidebarVisible: true,
     isThink: false,
+    abortController: null,
   }),
 
   getters: {
@@ -26,8 +25,34 @@ export const useChatStore = defineStore("chat", {
 
       const list = this.messagesMap[this.activeId];
       this.isStreaming = true;
+      this.abortController = new AbortController();
 
       const think = this.isThink;
+
+      // 检查是否是第一次发送消息的新会话
+      // 满足以下任一条件即视为新会话：
+      // 1. localStorage 中有 isNewSession 标志且消息列表为空
+      // 2. 当前活跃会话 ID 不在 chatList 中且消息列表为空
+      const isNewSessionFlag = localStorage.getItem('isNewSession') === 'true';
+      const isInChatList = this.chatList.some(chat => chat.id === this.activeId);
+      const shouldGenerateTitle = (isNewSessionFlag || !isInChatList) && list.length === 0;
+      
+      // 如果是新会话且这是第一条消息，添加到侧边栏
+      if (shouldGenerateTitle) {
+        // 添加到聊天列表
+        if (!isInChatList) {
+          this.chatList.unshift({ id: this.activeId, title: "新对话" });
+        }
+        // 清除新会话标志
+        localStorage.removeItem('isNewSession');
+      } else {
+        // 如果是旧对话，将其移动到列表最上方
+        const index = this.chatList.findIndex(chat => chat.id === this.activeId);
+        if (index > 0) {
+          const chat = this.chatList.splice(index, 1)[0];
+          this.chatList.unshift(chat);
+        }
+      }
 
       // 1️⃣ 用户消息
       list.push({
@@ -66,18 +91,40 @@ export const useChatStore = defineStore("chat", {
       });
 
       // 4️⃣ 调用流式接口
-      await streamChat(
-        list,
-        (chunk) => {
-          parser.parse(chunk);
-        },
-        think,
-      );
+      try {
+        await streamChat(
+          list,
+          (chunk) => {
+            parser.parse(chunk);
+          },
+          think,
+          this.abortController.signal
+        );
+      } catch (error) {
+        if (error.name === 'AbortError') {
+          console.log('Stream aborted');
+        } else {
+          console.error('Stream error:', error);
+        }
+      } finally {
+        parser.end();
+        currentMsg.streaming = false;
+        this.isStreaming = false;
+        this.abortController = null;
+      }
 
-      parser.end();
-      // 这里不需要重新赋值 blocks，因为 update() 已经处理了
-      currentMsg.streaming = false;
-      this.isStreaming = false;
+      // 5️⃣ 如果是新对话，流式更新标题
+      if (shouldGenerateTitle) {
+        const currentChat = this.chatList.find(chat => chat.id === this.activeId);
+        if (currentChat) {
+          currentChat.title = '';
+          await generateTitle(this.activeId, (chunk) => {
+            if (chunk.content) {
+              currentChat.title += chunk.content;
+            }
+          });
+        }
+      }
     },
 
     createChat() {
@@ -87,8 +134,17 @@ export const useChatStore = defineStore("chat", {
       this.activeId = id;
     },
 
+    stopStream() {
+      if (this.abortController) {
+        this.abortController.abort();
+        this.isStreaming = false;
+        this.abortController = null;
+      }
+    },
+
     setActive(id) {
       this.activeId = id;
+      localStorage.setItem('sessionId', id);
     },
 
     setSidebarVisible(visible) {
