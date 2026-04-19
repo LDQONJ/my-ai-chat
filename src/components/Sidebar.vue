@@ -39,7 +39,43 @@
         :class="{ active: chat.id === activeId }"
         @click="select(chat.id)"
       >
-        {{ chat.title }}
+        <div v-if="renamingId === chat.id" class="rename-input-wrapper">
+          <input
+            ref="renameInput"
+            v-model="renamingTitle"
+            class="rename-input"
+            @click.stop
+            @keyup.enter="handleRename(chat.id)"
+            @blur="cancelRename"
+          />
+        </div>
+        <template v-else>
+          <span class="chat-title">{{ chat.title }}</span>
+          <div class="chat-item-actions">
+            <button
+              class="item-more-btn"
+              @click.stop="toggleItemMenu(chat.id)"
+            >
+              <Icon :icon-class="'icon-more'" :font-size="14" />
+            </button>
+            
+            <!-- 聊天项更多菜单 -->
+            <div
+              v-if="itemMenuVisibleId === chat.id"
+              class="item-more-menu"
+              @click.stop
+            >
+              <div class="item-menu-item" @click="startRename(chat)">
+                <Icon :icon-class="'icon-edit'" :font-size="12" />
+                <span>重命名</span>
+              </div>
+              <div class="item-menu-item delete" @click="handleDelete(chat.id)">
+                <Icon :icon-class="'icon-delete'" :font-size="12" />
+                <span>删除</span>
+              </div>
+            </div>
+          </div>
+        </template>
       </div>
     </div>
 
@@ -121,13 +157,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 
 import { useChatStore } from '@/store/chat'
 import { useUserStore } from '@/store/user'
 import { sessionApi } from '@/api/test'
 import Icon from '@/components/common/Icon.vue'
 import LoginDialog from '@/components/LoginDialog.vue'
+import { ElMessage } from 'element-plus'
 
 const store = useChatStore()
 const userStore = useUserStore()
@@ -136,6 +173,10 @@ const chats = computed(() => store.chatList)
 const activeId = computed(() => store.activeId)
 const showLoginDialog = ref(false)
 const showMoreMenu = ref(false)
+const itemMenuVisibleId = ref(null)
+const renamingId = ref(null)
+const renamingTitle = ref('')
+const renameInput = ref(null)
 
 const fullAvatarUrl = computed(() => {
   if (!userStore.avatar) return userStore.defaultAvatar
@@ -298,10 +339,75 @@ const handleLogout = () => {
   window.location.reload()
 }
 
+const toggleItemMenu = (id) => {
+  if (itemMenuVisibleId.value === id) {
+    itemMenuVisibleId.value = null
+  } else {
+    itemMenuVisibleId.value = id
+  }
+}
+
+const startRename = async (chat) => {
+  renamingId.value = chat.id
+  renamingTitle.value = chat.title
+  itemMenuVisibleId.value = null
+  await nextTick()
+  if (renameInput.value && renameInput.value[0]) {
+    renameInput.value[0].focus()
+  }
+}
+
+const handleRename = async (id) => {
+  if (!renamingTitle.value.trim()) {
+    ElMessage.warning('标题不能为空')
+    return
+  }
+  
+  try {
+    await sessionApi.rename(id, renamingTitle.value.trim())
+    const chat = store.chatList.find(c => c.id === id)
+    if (chat) {
+      chat.title = renamingTitle.value.trim()
+    }
+    ElMessage.success('重命名成功')
+    renamingId.value = null
+  } catch (error) {
+    ElMessage.error('重命名失败')
+    console.error(error)
+  }
+}
+
+const cancelRename = () => {
+  renamingId.value = null
+}
+
+const handleDelete = async (id) => {
+  try {
+    await sessionApi.delete(id)
+    const index = store.chatList.findIndex(c => c.id === id)
+    if (index !== -1) {
+      store.chatList.splice(index, 1)
+    }
+    if (store.activeId === id) {
+      if (store.chatList.length > 0) {
+        select(store.chatList[0].id)
+      } else {
+        createChat()
+      }
+    }
+    ElMessage.success('删除成功')
+    itemMenuVisibleId.value = null
+  } catch (error) {
+    ElMessage.error('删除失败')
+    console.error(error)
+  }
+}
+
 // 点击外部关闭更多菜单
 onMounted(() => {
   window.addEventListener('click', () => {
     showMoreMenu.value = false
+    itemMenuVisibleId.value = null
   })
 })
 </script>
@@ -417,17 +523,101 @@ onMounted(() => {
   transition: all 0.2s ease;
   cursor: pointer;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  margin-bottom: 2px;
+  font-size: 14px;
 }
 
 .chat-item:hover {
   background: var(--bg-active);
-  transform: translateX(4px);
 }
 
 .chat-item.active {
   background: var(--bg-hover);
+}
+
+.chat-title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-item-actions {
+  display: flex;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.chat-item:hover .chat-item-actions {
+  opacity: 1;
+}
+
+.item-more-btn {
+  background: none;
+  border: none;
+  color: var(--text-sub);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.item-more-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-main);
+}
+
+.item-more-menu {
+  position: absolute;
+  top: 100%;
+  right: 10px;
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  min-width: 100px;
+  z-index: 100;
+}
+
+.item-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-main);
+}
+
+.item-menu-item:hover {
+  background: var(--bg-hover);
+}
+
+.item-menu-item.delete {
+  color: #ff4d4f;
+}
+
+.rename-input-wrapper {
+  width: 100%;
+}
+
+.rename-input {
+  width: 100%;
+  background: var(--bg-active);
+  border: 1px solid var(--primary);
+  border-radius: 4px;
+  color: var(--text-main);
+  padding: 2px 6px;
+  outline: none;
+  font-size: inherit;
 }
 
 .user-section {
