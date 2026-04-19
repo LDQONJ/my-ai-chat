@@ -96,13 +96,21 @@ const createSession = async () => {
 }
 
 // 响应式处理侧边栏
+let lastWidth = window.innerWidth
 const checkWidth = () => {
-  isMobile.value = window.innerWidth < 768
-  if (isMobile.value) {
-    store.setSidebarVisible(false)
-  } else {
-    store.setSidebarVisible(true)
+  const currentWidth = window.innerWidth
+  const wasMobile = isMobile.value
+  isMobile.value = currentWidth < 768
+
+  // 只有当宽度跨越阈值时，才自动调整侧边栏可见性
+  if (isMobile.value !== wasMobile) {
+    if (isMobile.value) {
+      store.setSidebarVisible(false)
+    } else {
+      store.setSidebarVisible(true)
+    }
   }
+  lastWidth = currentWidth
 }
 
 const toggleSidebar = () => {
@@ -171,12 +179,14 @@ watch(messages, async () => {
   --sidebar-width: 260px;
   display: flex;
   height: 100vh;
+  height: 100dvh;
   background: #0f172a;
   color: #fff;
   margin: 0;
   padding: 0;
   position: relative;
   transition: all 0.3s ease;
+  overflow: hidden;
 }
 
 .app.sidebar-hidden {

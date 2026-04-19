@@ -1,51 +1,53 @@
 <template>
-  <div v-if="visible" class="dialog-overlay" @click="close">
-    <div class="dialog-content" @click.stop>
-      <div class="dialog-header">
-        <h2>{{ isLoginMode ? '登录' : '注册' }}</h2>
-        <button class="close-btn" @click="close">×</button>
-      </div>
-      
-      <form @submit.prevent="handleSubmit" class="dialog-body">
-        <div class="form-item">
-          <label>用户名</label>
-          <input v-model="form.username" type="text" placeholder="请输入用户名" required />
+  <Teleport to="body">
+    <div v-if="visible" class="dialog-overlay" @click="close">
+      <div class="dialog-content" @click.stop>
+        <div class="dialog-header">
+          <h2>{{ isLoginMode ? '登录' : '注册' }}</h2>
+          <button class="close-btn" @click="close">×</button>
         </div>
         
-        <div v-if="!isLoginMode" class="form-item">
-          <label>邮箱</label>
-          <div class="input-with-btn">
-            <input v-model="form.email" type="email" placeholder="请输入邮箱" required />
-            <button type="button" :disabled="sendingCode" @click="handleSendCode">
-              {{ sendingCode ? `${countdown}s` : '获取验证码' }}
+        <form @submit.prevent="handleSubmit" class="dialog-body">
+          <div class="form-item">
+            <label>用户名</label>
+            <input v-model="form.username" type="text" placeholder="请输入用户名" required />
+          </div>
+          
+          <div v-if="!isLoginMode" class="form-item">
+            <label>邮箱</label>
+            <div class="input-with-btn">
+              <input v-model="form.email" type="email" placeholder="请输入邮箱" required />
+              <button type="button" :disabled="sendingCode" @click="handleSendCode">
+                {{ sendingCode ? `${countdown}s` : '获取验证码' }}
+              </button>
+            </div>
+          </div>
+
+          <div v-if="!isLoginMode" class="form-item">
+            <label>验证码</label>
+            <input v-model="form.code" type="text" placeholder="请输入验证码" required />
+          </div>
+
+          <div class="form-item">
+            <label>密码</label>
+            <input v-model="form.password" type="password" placeholder="请输入密码" required />
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="submit-btn" :disabled="loading">
+              {{ loading ? '处理中...' : (isLoginMode ? '登录' : '注册') }}
             </button>
+            <div class="mode-switch">
+              {{ isLoginMode ? '没有账号?' : '已有账号?' }}
+              <a href="javascript:void(0)" @click="isLoginMode = !isLoginMode">
+                {{ isLoginMode ? '立即注册' : '立即登录' }}
+              </a>
+            </div>
           </div>
-        </div>
-
-        <div v-if="!isLoginMode" class="form-item">
-          <label>验证码</label>
-          <input v-model="form.code" type="text" placeholder="请输入验证码" required />
-        </div>
-
-        <div class="form-item">
-          <label>密码</label>
-          <input v-model="form.password" type="password" placeholder="请输入密码" required />
-        </div>
-
-        <div class="form-actions">
-          <button type="submit" class="submit-btn" :disabled="loading">
-            {{ loading ? '处理中...' : (isLoginMode ? '登录' : '注册') }}
-          </button>
-          <div class="mode-switch">
-            {{ isLoginMode ? '没有账号?' : '已有账号?' }}
-            <a href="javascript:void(0)" @click="isLoginMode = !isLoginMode">
-              {{ isLoginMode ? '立即注册' : '立即登录' }}
-            </a>
-          </div>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
-  </div>
+  </Teleport>
 </template>
 
 <script setup>
@@ -127,7 +129,7 @@ const handleSubmit = async () => {
     }
     
     if (token) {
-      localStorage.setItem('token', token)
+      userStore.setToken(token) // 使用 store 方法设置 token，确保响应式
       const userInfo = await userApi.me()
       if (userInfo) {
         userStore.setUserInfo(userInfo || { username: form.username, email: form.email })
@@ -156,12 +158,23 @@ const handleSubmit = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 10000; /* 确保高于侧边栏 (9999) */
+  /* 防止移动端输入法弹出时位移 */
+  padding-top: constant(safe-area-inset-top);
+  padding-top: env(safe-area-inset-top);
+}
+
+@media (max-width: 768px) {
+  .dialog-overlay {
+    align-items: flex-start; /* 移动端改为顶部对齐，防止输入法弹出导致的垂直居中重算 */
+    padding-top: 80px; /* 使用固定高度，防止 vh 单位随输入法弹出而变化 */
+  }
 }
 
 .dialog-content {
   background: var(--bg-sidebar);
-  width: 400px;
+  width: 90%;
+  max-width: 400px;
   border-radius: 12px;
   padding: 24px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
