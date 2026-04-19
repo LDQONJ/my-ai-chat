@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   singleQuote: true,
   // 缩进宽度为 2 个空格
   tabWidth: 2,
@@ -9,5 +9,5 @@ module.exports = {
   // 使用 LF 作为换行符
   endOfLine: 'lf',
   // 对 HTML 空白符敏感，严格处理
-  htmlWhitespaceSensitivity: "strict",
+  htmlWhitespaceSensitivity: 'strict',
 };

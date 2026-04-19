@@ -23,7 +23,7 @@ export const useChatStore = defineStore("chat", {
     async sendStream(text) {
       if (this.isStreaming) return;
 
-      const list = this.messagesMap[this.activeId];
+      const list = this.messagesMap[this.activeId] || [];
       this.isStreaming = true;
       this.abortController = new AbortController();
 
@@ -82,7 +82,7 @@ export const useChatStore = defineStore("chat", {
         if (pending) return;
 
         pending = true;
-        // eslint-disable-next-line no-undef
+         
         requestAnimationFrame(() => {
           currentMsg.blocks = res.blocks;
           currentMsg.thinking = res.thinking;

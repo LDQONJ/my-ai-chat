@@ -9,21 +9,21 @@ const service = axios.create({
 
 // 请求拦截器：携带 JWT Token
 service.interceptors.request.use(
-  (config) => {
+  config => {
     const token = localStorage.getItem('token');
     if (token) {
       config.headers['Authorization'] = `${token}`;
     }
     return config;
   },
-  (error) => {
+  error => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // 响应拦截器
 service.interceptors.response.use(
-  (response) => {
+  response => {
     const res = response.data;
     // 如果返回的是流式数据，直接返回
     if (response.headers['content-type'] === 'text/event-stream') {
@@ -37,9 +37,9 @@ service.interceptors.response.use(
       return Promise.reject(new Error(res.message || 'Error'));
     }
   },
-  (error) => {
+  error => {
     return Promise.reject(error);
-  }
+  },
 );
 
 /**
@@ -138,4 +138,3 @@ export const sessionApi = {
     return service.get(`/session/${id}`);
   },
 };
-
