@@ -9,11 +9,11 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
-import { useChatStore } from '@/store/chat';
-import MessageItem from '@/components/MessageItem.vue';
-const store = useChatStore();
-const messages = computed(() => store.messages);
+import { computed } from 'vue'
+import { useChatStore } from '@/store/chat'
+import MessageItem from '@/components/MessageItem.vue'
+const store = useChatStore()
+const messages = computed(() => store.messages)
 </script>
 
 <style scoped>

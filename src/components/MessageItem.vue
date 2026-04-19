@@ -12,14 +12,14 @@
             @click="showThinking = !showThinking"
           >
             <div class="thinking-title">
-              <div :class="['icon', {'rotate': !showThinking}]">
+              <div :class="['icon', { rotate: !showThinking }]">
                 <Icon
                   :icon-class="'icon-Down'"
                   :font-size="13"
                 />
               </div>
 
-              <span>{{ isThinking ? "正在思考..." : "已完成思考" }}</span>
+              <span>{{ isThinking ? '正在思考...' : '已完成思考' }}</span>
             </div>
           </div>
           <div
@@ -47,10 +47,8 @@
             class="code-wrapper"
           >
             <div class="code-header">
-              <span>{{ block.lang || "code" }}</span>
-              <button @click="copy(block.content)">
-                复制
-              </button>
+              <span>{{ block.lang || 'code' }}</span>
+              <button @click="copy(block.content)">复制</button>
             </div>
 
             <pre class="code-block">
@@ -78,58 +76,58 @@
 </template>
 
 <script setup>
-import MarkdownIt from "markdown-it";
-import hljs from "highlight.js";
-import "highlight.js/styles/github-dark.css";
-import DOMPurify from "dompurify";
-import { nextTick, computed, ref } from "vue";
-import Icon from "@/components/common/Icon.vue";
+import MarkdownIt from 'markdown-it'
+import hljs from 'highlight.js'
+import 'highlight.js/styles/github-dark.css'
+import DOMPurify from 'dompurify'
+import { nextTick, computed, ref } from 'vue'
+import Icon from '@/components/common/Icon.vue'
 
 const props = defineProps({
   message: Object,
-});
+})
 
-const showThinking = ref(true);
+const showThinking = ref(true)
 
 // 是否正在思考中
 const isThinking = computed(() => {
-  return props.message.streaming && !props.message.blocks.length;
-});
+  return props.message.streaming && !props.message.blocks.length
+})
 
 const md = new MarkdownIt({
-  highlight (str, lang) {
+  highlight(str, lang) {
     if (lang && hljs.getLanguage(lang)) {
       try {
-        return hljs.highlight(str, { language: lang }).value;
+        return hljs.highlight(str, { language: lang }).value
       } catch (error) {
         console.log(error)
       }
     }
-    return ""; // use external default escaping
+    return '' // use external default escaping
   },
-});
+})
 
 // Markdown 渲染
 function renderMarkdown(text) {
-  return DOMPurify.sanitize(md.render(text || ""));
+  return DOMPurify.sanitize(md.render(text || ''))
 }
 
 // 高亮
-const setCodeRef = async (el) => {
-  if (!el) return;
-  await nextTick();
-  hljs.highlightElement(el);
-};
+const setCodeRef = async el => {
+  if (!el) return
+  await nextTick()
+  hljs.highlightElement(el)
+}
 
 // 是否流式中
 const isStreaming = computed(() => {
-  return !!props.message.streaming;
-});
+  return !!props.message.streaming
+})
 
 // 复制
-const copy = (text) => {
-  navigator.clipboard.writeText(text);
-};
+const copy = text => {
+  navigator.clipboard.writeText(text)
+}
 </script>
 
 <style scoped>

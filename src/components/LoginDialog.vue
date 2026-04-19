@@ -1,19 +1,42 @@
 <template>
   <Teleport to="body">
-    <div v-if="visible" class="dialog-overlay" @click="close">
-      <div class="dialog-content" @click.stop>
+    <div
+      v-if="visible"
+      class="dialog-overlay"
+      @click="close"
+    >
+      <div
+        class="dialog-content"
+        @click.stop
+      >
         <div class="dialog-header">
           <h2>{{ isLoginMode ? '登录' : '注册' }}</h2>
-          <button class="close-btn" @click="close">×</button>
+          <button
+            class="close-btn"
+            @click="close"
+          >
+            ×
+          </button>
         </div>
-        
-        <form @submit.prevent="handleSubmit" class="dialog-body">
+
+        <form
+          class="dialog-body"
+          @submit.prevent="handleSubmit"
+        >
           <!-- 头像上传 -->
-          <div v-if="!isLoginMode" class="form-item avatar-upload">
+          <div
+            v-if="!isLoginMode"
+            class="form-item avatar-upload"
+          >
             <label>头像</label>
-            <div class="avatar-container" @click="triggerFileInput">
-              <img :src="fullAvatarUrl" alt="预览图" />
-              <div v-if="!form.avatar" class="upload-mask">
+            <div
+              class="avatar-container"
+              @click="triggerFileInput"
+            >
+              <div
+                v-if="!form.avatar"
+                class="upload-mask"
+              >
                 <span class="plus-icon">+</span>
                 <span>上传头像</span>
               </div>
@@ -29,36 +52,73 @@
 
           <div class="form-item">
             <label>用户名</label>
-            <input v-model="form.username" type="text" placeholder="请输入用户名" required />
+            <input
+              v-model="form.username"
+              type="text"
+              placeholder="请输入用户名"
+              required
+            />
           </div>
-          
-          <div v-if="!isLoginMode" class="form-item">
+
+          <div
+            v-if="!isLoginMode"
+            class="form-item"
+          >
             <label>邮箱</label>
             <div class="input-with-btn">
-              <input v-model="form.email" type="email" placeholder="请输入邮箱" required />
-              <button type="button" :disabled="sendingCode" @click="handleSendCode">
+              <input
+                v-model="form.email"
+                type="email"
+                placeholder="请输入邮箱"
+                required
+              />
+              <button
+                type="button"
+                :disabled="sendingCode"
+                @click="handleSendCode"
+              >
                 {{ sendingCode ? `${countdown}s` : '获取验证码' }}
               </button>
             </div>
           </div>
 
-          <div v-if="!isLoginMode" class="form-item">
+          <div
+            v-if="!isLoginMode"
+            class="form-item"
+          >
             <label>验证码</label>
-            <input v-model="form.code" type="text" placeholder="请输入验证码" required />
+            <input
+              v-model="form.code"
+              type="text"
+              placeholder="请输入验证码"
+              required
+            />
           </div>
 
           <div class="form-item">
             <label>密码</label>
-            <input v-model="form.password" type="password" placeholder="请输入密码" required />
+            <input
+              v-model="form.password"
+              type="password"
+              placeholder="请输入密码"
+              required
+            />
           </div>
 
           <div class="form-actions">
-            <button type="submit" class="submit-btn" :disabled="loading">
-              {{ loading ? '处理中...' : (isLoginMode ? '登录' : '注册') }}
+            <button
+              type="submit"
+              class="submit-btn"
+              :disabled="loading"
+            >
+              {{ loading ? '处理中...' : isLoginMode ? '登录' : '注册' }}
             </button>
             <div class="mode-switch">
               {{ isLoginMode ? '没有账号?' : '已有账号?' }}
-              <a href="javascript:void(0)" @click="isLoginMode = !isLoginMode">
+              <a
+                href="javascript:void(0)"
+                @click="isLoginMode = !isLoginMode"
+              >
                 {{ isLoginMode ? '立即注册' : '立即登录' }}
               </a>
             </div>
@@ -76,7 +136,7 @@ import { useUserStore } from '@/store/user'
 import { ElMessage } from 'element-plus'
 
 const props = defineProps({
-  visible: Boolean
+  visible: Boolean,
 })
 
 const emit = defineEmits(['update:visible', 'success'])
@@ -93,7 +153,7 @@ const form = reactive({
   password: '',
   email: '',
   code: '',
-  avatar: ''
+  avatar: '',
 })
 
 const fullAvatarUrl = computed(() => {
@@ -106,7 +166,7 @@ const triggerFileInput = () => {
   fileInput.value?.click()
 }
 
-const handleFileUpload = async (event) => {
+const handleFileUpload = async event => {
   const file = event.target.files[0]
   if (!file) return
 
@@ -147,12 +207,12 @@ const handleSendCode = async () => {
     ElMessage.warning('请先输入邮箱')
     return
   }
-  
+
   try {
     sendingCode.value = true
     await codeApi.sendCode(form.email)
     ElMessage.success('验证码已发送')
-    
+
     const timer = setInterval(() => {
       countdown.value--
       if (countdown.value <= 0) {
@@ -174,7 +234,7 @@ const handleSubmit = async () => {
     if (isLoginMode.value) {
       token = await userApi.login({
         username: form.username,
-        password: form.password
+        password: form.password,
       })
     } else {
       token = await userApi.register({
@@ -182,15 +242,17 @@ const handleSubmit = async () => {
         password: form.password,
         email: form.email,
         code: form.code,
-        avatar: form.avatar
+        avatar: form.avatar,
       })
     }
-    
+
     if (token) {
       userStore.setToken(token) // 使用 store 方法设置 token，确保响应式
       const userInfo = await userApi.me()
       if (userInfo) {
-        userStore.setUserInfo(userInfo || { username: form.username, email: form.email })
+        userStore.setUserInfo(
+          userInfo || { username: form.username, email: form.email },
+        )
       }
       emit('success')
       close()
@@ -198,7 +260,9 @@ const handleSubmit = async () => {
       throw new Error('响应数据异常')
     }
   } catch (err) {
-    ElMessage.error(err.message || (isLoginMode.value ? '登录失败' : '注册失败'))
+    ElMessage.error(
+      err.message || (isLoginMode.value ? '登录失败' : '注册失败'),
+    )
   } finally {
     loading.value = false
   }

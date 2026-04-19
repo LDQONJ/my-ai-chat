@@ -1,5 +1,7 @@
-module.exports = {
+export default {
   singleQuote: true,
+  // 不使用行尾分号
+  semi: false,
   // 缩进宽度为 2 个空格
   tabWidth: 2,
   // 每行最大字符数为 80
@@ -8,6 +10,5 @@ module.exports = {
   arrowParens: 'avoid',
   // 使用 LF 作为换行符
   endOfLine: 'lf',
-  // 对 HTML 空白符敏感，严格处理
-  htmlWhitespaceSensitivity: "strict",
-};
+  singleAttributePerLine: true,
+}

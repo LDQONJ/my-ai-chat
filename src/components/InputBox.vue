@@ -7,7 +7,7 @@
         placeholder="给 LDQ's AI 发送消息"
         rows="3"
         @focus="focus = true"
-        @blur="focus = false" 
+        @blur="focus = false"
         @keyup.enter="send"
       />
 
@@ -58,61 +58,59 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick } from "vue";
-import { useChatStore } from "../store/chat";
-import Icon from "@/components/common/Icon.vue";
+import { ref, computed, nextTick } from 'vue'
+import { useChatStore } from '../store/chat'
+import Icon from '@/components/common/Icon.vue'
 
-const text = ref("");
-const focus = ref(false);
-const store = useChatStore();
-const textareaRef = ref();
+const text = ref('')
+const focus = ref(false)
+const store = useChatStore()
+const textareaRef = ref()
 
-const isInputEmpty = computed(() => !text.value.trim());
+const isInputEmpty = computed(() => !text.value.trim())
 
 const send = () => {
   if (store.isStreaming) {
-    store.stopStream();
-    return;
+    store.stopStream()
+    return
   }
 
   if (isInputEmpty.value) {
-    return;
+    return
   }
 
-  store.sendStream(text.value);
-  text.value = "";
+  store.sendStream(text.value)
+  text.value = ''
   if (textareaRef.value) {
-    textareaRef.value.style.height = "auto";
+    textareaRef.value.style.height = 'auto'
   }
-};
+}
 
-const handleShiftEnter = (event) => {
+const handleShiftEnter = event => {
   // Shift+Enter 换行
-  const textarea = event.target;
-  const start = textarea.selectionStart;
-  const end = textarea.selectionEnd;
-  text.value =
-    text.value.substring(0, start) + "\n" + text.value.substring(end);
+  const textarea = event.target
+  const start = textarea.selectionStart
+  const end = textarea.selectionEnd
+  text.value = text.value.substring(0, start) + '\n' + text.value.substring(end)
   nextTick(() => {
-    textarea.selectionStart = textarea.selectionEnd = start + 1;
-    autoResize(textarea);
-  });
-};
+    textarea.selectionStart = textarea.selectionEnd = start + 1
+    autoResize(textarea)
+  })
+}
 
 const autoResize = () => {
   if (textareaRef.value) {
-    textareaRef.value.style.height = "auto";
-    textareaRef.value.style.height = textareaRef.value.scrollHeight + "px";
+    textareaRef.value.style.height = 'auto'
+    textareaRef.value.style.height = textareaRef.value.scrollHeight + 'px'
   }
-};
+}
 
 // 监听文本变化自动调整高度
 const watchText = () => {
   if (textareaRef.value) {
-    autoResize(textareaRef.value);
+    autoResize(textareaRef.value)
   }
-};
-
+}
 </script>
 
 <style scoped>

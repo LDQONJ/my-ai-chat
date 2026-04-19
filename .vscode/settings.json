@@ -30,5 +30,14 @@
   "eslint.validate": [
     "javascript",
     "vue"
-  ]
+  ],
+  // CSS/SCSS 缩进配置
+  "css.format.enable": true,
+  "css.format.newlineBetweenRules": true,
+  "css.format.newlineBetweenSelectors": true,
+  "css.format.spaceAroundSelectorSeparator": true,
+  "scss.format.enable": true,
+  "scss.format.newlineBetweenRules": true,
+  "scss.format.newlineBetweenSelectors": true,
+  "scss.format.spaceAroundSelectorSeparator": true
 }

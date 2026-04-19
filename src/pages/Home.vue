@@ -47,7 +47,7 @@
 import { ref, watch, nextTick, computed, onMounted, onUnmounted } from 'vue'
 import { useChatStore } from '@/store/chat'
 import { useUserStore } from '@/store/user'
-import { userApi, sessionApi} from '@/api/test'
+import { userApi, sessionApi } from '@/api/test'
 import Sidebar from '@/components/Sidebar.vue'
 import ChatWindow from '@/components/ChatWindow.vue'
 import InputBox from '@/components/InputBox.vue'
@@ -118,11 +118,14 @@ const toggleSidebar = () => {
 }
 
 // 监听消息发送，如果是移动端则自动收起侧边栏
-watch(() => store.isStreaming, (newVal) => {
-  if (newVal && isMobile.value) {
-    store.setSidebarVisible(false)
-  }
-})
+watch(
+  () => store.isStreaming,
+  newVal => {
+    if (newVal && isMobile.value) {
+      store.setSidebarVisible(false)
+    }
+  },
+)
 
 let resizeObserver
 
@@ -131,7 +134,7 @@ onMounted(() => {
   window.addEventListener('resize', checkWidth)
 
   refreshUserInfo()
-  
+
   const token = localStorage.getItem('token')
   if (!token) {
     // 未登录用户：每次刷新页面都清空旧会话并创建新会话
@@ -149,11 +152,14 @@ onMounted(() => {
 
   // 监听输入框高度变化
   if (inputContainerRef.value) {
-    resizeObserver = new ResizeObserver((entries) => {
+    resizeObserver = new ResizeObserver(entries => {
       for (const entry of entries) {
         // 使用 getBoundingClientRect 获取包含 padding 的完整高度
         const rect = entry.target.getBoundingClientRect()
-        document.documentElement.style.setProperty('--input-container-height', `${rect.height}px`)
+        document.documentElement.style.setProperty(
+          '--input-container-height',
+          `${rect.height}px`,
+        )
       }
     })
     resizeObserver.observe(inputContainerRef.value)
@@ -175,12 +181,16 @@ const handleScroll = () => {
   isAtBottom.value = scrollHeight - scrollTop - clientHeight < 50
 }
 
-watch(messages, async () => {
-  await nextTick()
-  if (mainRef.value && isAtBottom.value) {
-    mainRef.value.scrollTop = mainRef.value.scrollHeight
-  }
-}, { deep: true })
+watch(
+  messages,
+  async () => {
+    await nextTick()
+    if (mainRef.value && isAtBottom.value) {
+      mainRef.value.scrollTop = mainRef.value.scrollHeight
+    }
+  },
+  { deep: true },
+)
 </script>
 
 <style>
@@ -296,7 +306,6 @@ watch(messages, async () => {
 .app.is-mobile .footer {
   left: 0;
 }
-
 
 .main {
   flex: 1;
