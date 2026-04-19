@@ -310,7 +310,7 @@ onMounted(() => {
 .sidebar {
   width: var(--sidebar-width);
   background: var(--bg-sidebar);
-  padding: 16px;
+  padding: 16px 16px 0 16px;
   border-right: 1px solid var(--border);
   transition: all 0.3s ease;
   overflow: hidden;
