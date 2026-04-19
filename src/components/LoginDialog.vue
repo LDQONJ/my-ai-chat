@@ -8,6 +8,25 @@
         </div>
         
         <form @submit.prevent="handleSubmit" class="dialog-body">
+          <!-- 头像上传 -->
+          <div v-if="!isLoginMode" class="form-item avatar-upload">
+            <label>头像</label>
+            <div class="avatar-container" @click="triggerFileInput">
+              <img :src="fullAvatarUrl" alt="预览图" />
+              <div v-if="!form.avatar" class="upload-mask">
+                <span class="plus-icon">+</span>
+                <span>上传头像</span>
+              </div>
+              <input
+                ref="fileInput"
+                type="file"
+                accept="image/*"
+                class="hidden-input"
+                @change="handleFileUpload"
+              />
+            </div>
+          </div>
+
           <div class="form-item">
             <label>用户名</label>
             <input v-model="form.username" type="text" placeholder="请输入用户名" required />
@@ -51,11 +70,10 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
-import { userApi, codeApi } from '@/api/test'
+import { ref, reactive, computed } from 'vue'
+import { userApi, codeApi, fileApi } from '@/api/test'
 import { useUserStore } from '@/store/user'
 import { ElMessage } from 'element-plus'
-import { lo } from 'element-plus/es/locale/index.mjs';
 
 const props = defineProps({
   visible: Boolean
@@ -68,13 +86,51 @@ const isLoginMode = ref(true)
 const loading = ref(false)
 const sendingCode = ref(false)
 const countdown = ref(60)
+const fileInput = ref(null)
 
 const form = reactive({
   username: '',
   password: '',
   email: '',
-  code: ''
+  code: '',
+  avatar: ''
 })
+
+const fullAvatarUrl = computed(() => {
+  if (!form.avatar) return userStore.defaultAvatar
+  const host = import.meta.env.VITE_API_HOST
+  return form.avatar.startsWith('http') ? form.avatar : `${host}${form.avatar}`
+})
+
+const triggerFileInput = () => {
+  fileInput.value?.click()
+}
+
+const handleFileUpload = async (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+
+  // 校验文件类型和大小
+  if (!file.type.startsWith('image/')) {
+    ElMessage.warning('请选择图片文件')
+    return
+  }
+  if (file.size > 2 * 1024 * 1024) {
+    ElMessage.warning('图片大小不能超过 2MB')
+    return
+  }
+
+  const formData = new FormData()
+  formData.append('file', file)
+
+  try {
+    const res = await fileApi.upload(formData)
+    form.avatar = res // 假设响应 data 为文件路径字符串
+    ElMessage.success('头像上传成功')
+  } catch (err) {
+    ElMessage.error(err.message || '头像上传失败')
+  }
+}
 
 const close = () => {
   emit('update:visible', false)
@@ -83,6 +139,7 @@ const close = () => {
   form.password = ''
   form.email = ''
   form.code = ''
+  form.avatar = ''
 }
 
 const handleSendCode = async () => {
@@ -124,7 +181,8 @@ const handleSubmit = async () => {
         username: form.username,
         password: form.password,
         email: form.email,
-        code: form.code
+        code: form.code,
+        avatar: form.avatar
       })
     }
     
@@ -256,6 +314,77 @@ const handleSubmit = async () => {
 
 .submit-btn:disabled {
   background: #a0cfff;
+}
+
+/* 头像上传样式 */
+.avatar-upload {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.avatar-container {
+  width: 80px;
+  height: 80px;
+  border: 2px dashed var(--border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  background: var(--bg-active);
+}
+
+.avatar-container:hover {
+  border-color: #409eff;
+  background: var(--bg-hover);
+}
+
+.avatar-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.upload-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+  color: white;
+  font-size: 12px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.avatar-container:hover .upload-mask {
+  opacity: 1;
+}
+
+.upload-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--text-sub);
+  font-size: 12px;
+}
+
+.plus-icon {
+  font-size: 24px;
+  margin-bottom: 4px;
+}
+
+.hidden-input {
+  display: none;
 }
 
 .mode-switch {

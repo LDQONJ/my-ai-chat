@@ -46,10 +46,10 @@
     </div>
 
     <!-- 用户栏 -->
-    <div class="user-section" @click="handleUserClick">
-      <div class="user-info">
+    <div class="user-section">
+      <div class="user-info" @click="handleUserClick">
         <div class="user-avatar">
-          <img v-if="userStore.isLoggedIn" :src="userStore.avatar" alt="用户头像" />
+          <img :src="userStore.isLoggedIn ? fullAvatarUrl : userStore.defaultAvatar" alt="用户头像" />
         </div>
         <div class="user-detail" v-if="userStore.isLoggedIn">
           <div class="username">{{ userStore.username }}</div>
@@ -57,6 +57,23 @@
         </div>
         <div class="user-detail" v-else>
           <div class="login-tip">点击登录/注册</div>
+        </div>
+      </div>
+      
+      <!-- 更多按钮 -->
+      <div v-if="userStore.isLoggedIn" class="more-options">
+        <button class="more-btn" @click.stop="showMoreMenu = !showMoreMenu">
+          <Icon :icon-class="'icon-more'"  :font-size="16" />
+
+        </button>
+        
+        <!-- 弹出菜单 -->
+        <div v-if="showMoreMenu" class="more-menu" @click.stop>
+          <div class="menu-item logout" @click="handleLogout">
+            <Icon :icon-logout="'icon-logout'" :font-size="14" />
+
+            <span>退出登录</span>
+          </div>
         </div>
       </div>
     </div>
@@ -82,6 +99,14 @@ const userStore = useUserStore()
 const chats = computed(() => store.chatList)
 const activeId = computed(() => store.activeId)
 const showLoginDialog = ref(false)
+const showMoreMenu = ref(false)
+
+const fullAvatarUrl = computed(() => {
+  if (!userStore.avatar) return userStore.defaultAvatar
+  if (userStore.avatar.startsWith('http') || userStore.avatar.startsWith('data:')) return userStore.avatar
+  const host = import.meta.env.VITE_API_HOST
+  return `${host}${userStore.avatar}`
+})
 
 // 获取会话列表
 const fetchSessionList = async () => {
@@ -118,7 +143,9 @@ const fetchSessionList = async () => {
 
 // 页面加载时获取会话列表
 onMounted(() => {
-  fetchSessionList()
+  if (userStore.isLoggedIn) {
+    fetchSessionList()
+  }
 })
 
 const handleUserClick = () => {
@@ -163,8 +190,14 @@ const select = async (id, isAuto = false) => {
         }
     } catch (error) {
         console.error('获取会话详情失败:', error)
-        // 出错时仍然设置活跃会话
-        store.setActive(id)
+        // 核心修复：如果查询失败（例如会话已被后端清理），重新创建新会话
+        if (isAuto) {
+            console.log('自动恢复失败，尝试创建新会话...')
+            createChat()
+        } else {
+            // 用户点击导致的失败，尝试从列表中移除该项（可选，目前至少保证不崩溃）
+            store.setActive(id)
+        }
         
         // 如果是窄屏模式，选择聊天后自动收起
         if (window.innerWidth < 768 && !isAuto) {
@@ -216,6 +249,21 @@ const handleLoginSuccess = () => {
   fetchSessionList()
   console.log('登录成功，用户信息已更新')
 }
+
+const handleLogout = () => {
+  userStore.logout()
+  store.reset()
+  showMoreMenu.value = false
+  // 退出登录后刷新页面或跳转
+  window.location.reload()
+}
+
+// 点击外部关闭更多菜单
+onMounted(() => {
+  window.addEventListener('click', () => {
+    showMoreMenu.value = false
+  })
+})
 </script>
   
 <style scoped>
@@ -347,19 +395,80 @@ const handleLoginSuccess = () => {
     margin: 0 -16px;
     padding-left: 16px;
     padding-right: 16px;
-    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     transition: background 0.2s;
     flex-shrink: 0;
-}
-
-.user-section:hover {
-    background: var(--bg-hover);
+    position: relative;
 }
 
 .user-info {
     display: flex;
     align-items: center;
     gap: 12px;
+    cursor: pointer;
+    flex: 1;
+    overflow: hidden;
+}
+
+.user-section:hover {
+    background: var(--bg-hover);
+}
+
+.more-options {
+    position: relative;
+}
+
+.more-btn {
+    background: none;
+    border: none;
+    color: var(--text-sub);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.more-btn:hover {
+    background: var(--bg-active);
+    color: var(--text-main);
+}
+
+.more-menu {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    right: 0;
+    background: var(--bg-sidebar);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    min-width: 120px;
+    z-index: 100;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--text-main);
+    transition: background 0.2s;
+}
+
+.menu-item:hover {
+    background: var(--bg-hover);
+}
+
+.menu-item.logout {
+    color: #ff4d4f;
 }
 
 .user-avatar {

@@ -70,6 +70,23 @@ export const userApi = {
 };
 
 /**
+ * 文件上传接口
+ */
+export const fileApi = {
+  /**
+   * 上传文件
+   * @param {FormData} formData
+   */
+  upload(formData) {
+    return service.post('/files', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+};
+
+/**
  * 验证码接口
  */
 export const codeApi = {

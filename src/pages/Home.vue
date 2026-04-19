@@ -132,10 +132,19 @@ onMounted(() => {
 
   refreshUserInfo()
   
-  // 区分刷新和重新打开：sessionStorage 在标签页关闭后会清除
-  if (!sessionStorage.getItem('is_session_active')) {
+  const token = localStorage.getItem('token')
+  if (!token) {
+    // 未登录用户：每次刷新页面都清空旧会话并创建新会话
+    localStorage.removeItem('sessionId')
+    localStorage.removeItem('isNewSession')
+    store.activeId = null
     createSession()
-    sessionStorage.setItem('is_session_active', 'true')
+  } else {
+    // 已登录用户：区分刷新和重新打开（sessionStorage 在标签页关闭后会清除）
+    if (!sessionStorage.getItem('is_session_active')) {
+      createSession()
+      sessionStorage.setItem('is_session_active', 'true')
+    }
   }
 
   // 监听输入框高度变化

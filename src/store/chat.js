@@ -117,9 +117,13 @@ export const useChatStore = defineStore("chat", {
       if (shouldGenerateTitle) {
         const currentChat = this.chatList.find(chat => chat.id === this.activeId);
         if (currentChat) {
-          currentChat.title = '';
+          let firstChunk = true;
           await generateTitle(this.activeId, (chunk) => {
             if (chunk.content) {
+              if (firstChunk) {
+                currentChat.title = ''; // 仅在收到首个有效内容时清空原标题，防止 UI 塌陷
+                firstChunk = false;
+              }
               currentChat.title += chunk.content;
             }
           });
@@ -154,5 +158,21 @@ export const useChatStore = defineStore("chat", {
     toggleThink() {
       this.isThink = !this.isThink;
     },
+
+    reset() {
+      this.chatList = [];
+      this.activeId = null;
+      this.messagesMap = {};
+      this.isStreaming = false;
+      this.isThink = false;
+      if (this.abortController) {
+        this.abortController.abort();
+      }
+      this.abortController = null;
+      localStorage.removeItem('sessionId');
+      localStorage.removeItem('sessionList');
+      localStorage.removeItem('isNewSession');
+      sessionStorage.removeItem('is_session_active');
+    }
   },
 });

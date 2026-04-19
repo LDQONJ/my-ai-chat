@@ -11,6 +11,7 @@ export const useUserStore = defineStore('user', {
     email: (state) => state.userInfo?.email || '',
     phone: (state) => state.userInfo?.phone || '',
     avatar: (state) => state.userInfo?.avatar || '',
+    defaultAvatar: () => 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'
   },
   actions: {
     setToken(token) {
