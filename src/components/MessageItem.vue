@@ -25,6 +25,7 @@
           <div
             v-show="showThinking"
             class="thinking-content markdown"
+            @click="handleMarkdownClick"
             v-html="renderMarkdown(message.thinking)"
           >
           </div>
@@ -38,7 +39,8 @@
           <div
             v-if="block.type === 'text'"
             class="markdown"
-            v-html="renderMarkdown(block.content)"
+            @click="handleMarkdownClick"
+            v-html="renderMarkdown(block.content, i === message.blocks.length - 1)"
           />
 
           <!-- 代码块 -->
@@ -48,20 +50,19 @@
           >
             <div class="code-header">
               <span>{{ block.lang || 'code' }}</span>
-              <button @click="copy(block.content)">复制</button>
+              <button
+                class="copy-btn"
+                @click="copy(block.content, $event)"
+              >
+                复制
+              </button>
             </div>
 
-            <pre class="code-block">
-              <code ref="setCodeRef">{{ block.content }}</code>
-            </pre>
+            <pre class="code-block"><code ref="setCodeRef">{{ block.content }}<span v-if="i === message.blocks.length - 1 && isStreaming" class="cursor"></span></code></pre>
           </div>
         </template>
 
-        <!-- 光标（流式时） -->
-        <span
-          v-if="isStreaming"
-          class="cursor"
-        />
+        <!-- 原有的光标移除，改为在 Markdown/代码块内部渲染 -->
       </div>
     </template>
 
@@ -107,9 +108,44 @@ const md = new MarkdownIt({
   },
 })
 
+// 自定义渲染规则，为 markdown 中的代码块添加头部和样式
+const defaultFence = md.renderer.rules.fence
+md.renderer.rules.fence = (tokens, idx, options, env, self) => {
+  const token = tokens[idx]
+  const info = token.info ? token.info.trim() : ''
+  const langName = info.split(/\s+/g)[0]
+  const highlighted = options.highlight(token.content, langName) || token.content
+
+  return `
+    <div class="markdown-code-wrapper">
+      <div class="markdown-code-header">
+        <span>${langName || 'code'}</span>
+        <button class="markdown-copy-btn" data-content="${encodeURIComponent(token.content)}">复制</button>
+      </div>
+      <pre class="hljs"><code>${highlighted}</code></pre>
+    </div>
+  `
+}
+
 // Markdown 渲染
-function renderMarkdown(text) {
-  return DOMPurify.sanitize(md.render(text || ''))
+function renderMarkdown(text, isLastBlock = false) {
+  let html = md.render(text || '')
+  
+  // 如果是最后一个文本块且正在流式输出，在 HTML 末尾插入光标占位符
+  if (isLastBlock && props.message.streaming) {
+    // 找到最后一个闭合标签（通常是 </p>、</li> 或 </div>）并在其前面插入
+    const lastTagIndex = html.lastIndexOf('</')
+    if (lastTagIndex !== -1) {
+      html = html.substring(0, lastTagIndex) + '<span class="cursor"></span>' + html.substring(lastTagIndex)
+    } else {
+      html += '<span class="cursor"></span>'
+    }
+  }
+
+  return DOMPurify.sanitize(html, {
+    ADD_ATTR: ['class'],
+    ADD_TAGS: ['div', 'span', 'pre', 'code'],
+  })
 }
 
 // 高亮
@@ -125,8 +161,27 @@ const isStreaming = computed(() => {
 })
 
 // 复制
-const copy = text => {
-  navigator.clipboard.writeText(text)
+const copy = (text, event) => {
+  navigator.clipboard.writeText(text).then(() => {
+    // 简单的反馈：改变按钮文字
+    const target = event?.target
+    if (target && target.tagName === 'BUTTON') {
+      const originalText = target.innerText
+      target.innerText = '已复制'
+      setTimeout(() => {
+        target.innerText = originalText
+      }, 2000)
+    }
+  })
+}
+
+// 处理 markdown 中复制按钮的点击事件（事件委托）
+const handleMarkdownClick = (event) => {
+  const target = event.target
+  if (target.classList.contains('markdown-copy-btn')) {
+    const content = decodeURIComponent(target.getAttribute('data-content'))
+    copy(content, event)
+  }
 }
 </script>
 
@@ -218,6 +273,16 @@ const copy = text => {
   word-break: break-word;
 }
 
+.markdown :deep(.cursor) {
+  display: inline-block;
+  width: 2px;
+  height: 16px;
+  background: var(--primary);
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  animation: blink 1s infinite;
+}
+
 .markdown :deep(ul),
 .markdown :deep(ol) {
   padding-left: 24px;
@@ -240,34 +305,113 @@ const copy = text => {
   margin-bottom: 0;
 }
 
+/* 统一 Markdown 中的代码块样式 */
+.markdown :deep(.markdown-code-wrapper) {
+  margin: 10px 0;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #0b1220;
+  font-family: SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+}
+
+.markdown :deep(.markdown-code-header) {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  padding: 6px 10px;
+  background: #020617;
+  color: var(--text-sub);
+}
+
+.markdown :deep(.markdown-copy-btn) {
+  background: transparent;
+  border: none;
+  color: var(--text-sub);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.markdown :deep(.markdown-copy-btn:hover) {
+  background: var(--bg-hover);
+  color: var(--text-main);
+}
+
+.markdown :deep(.hljs) {
+  background: transparent !important;
+  padding: 12px;
+  margin: 0;
+  overflow-x: auto;
+  font-size: 14px;
+}
+
+.markdown :deep(code) {
+  font-family: SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 0.9em;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+.markdown :deep(.hljs code) {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  font-size: 14px;
+}
+
 /* code */
 .code-wrapper {
   margin-top: 10px;
   border-radius: 10px;
   overflow: hidden;
   background: #0b1220;
+  font-family: SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
 }
 
 .code-header {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   font-size: 12px;
   padding: 6px 10px;
   background: #020617;
+  color: var(--text-sub);
+}
+
+.copy-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-sub);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.copy-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-main);
 }
 
 .code-block {
+  margin: 0;
   padding: 12px;
   overflow-x: auto;
+  font-size: 14px;
 }
 
 /* cursor */
 .cursor {
   display: inline-block;
   width: 2px;
-  height: 18px;
+  height: 1.1em;
   background: var(--primary);
-  margin-left: 4px;
+  margin-left: 2px;
   vertical-align: middle;
   animation: blink 1s infinite;
 }
