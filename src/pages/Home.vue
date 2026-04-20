@@ -52,7 +52,7 @@
     >
       <InputBox />
     </div>
-    <div class="footer">
+    <div ref="footerRef" class="footer">
       <span>内容由 AI 生成，请仔细甄别</span>
     </div>
   </div>
@@ -73,6 +73,7 @@ const userStore = useUserStore()
 const messages = computed(() => store.messages)
 const mainRef = ref()
 const inputContainerRef = ref()
+const footerRef = ref()
 const isAtBottom = ref(true)
 const isMobile = ref(false)
 
@@ -163,6 +164,7 @@ watch(
 )
 
 let resizeObserver
+let footerResizeObserver
 
 onMounted(() => {
   checkWidth()
@@ -199,12 +201,49 @@ onMounted(() => {
     })
     resizeObserver.observe(inputContainerRef.value)
   }
+
+  if (footerRef.value) {
+    footerResizeObserver = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        const rect = entry.target.getBoundingClientRect()
+        document.documentElement.style.setProperty(
+          '--footer-height',
+          `${rect.height}px`,
+        )
+      }
+    })
+    footerResizeObserver.observe(footerRef.value)
+  }
+
+  if (window.visualViewport) {
+    const handleViewportChange = () => {
+      if (!mainRef.value) return
+      const atBottomNow =
+        mainRef.value.scrollHeight -
+          mainRef.value.scrollTop -
+          mainRef.value.clientHeight <
+        80
+
+      if (!atBottomNow) return
+
+      requestAnimationFrame(() => {
+        if (!mainRef.value) return
+        mainRef.value.scrollTop = mainRef.value.scrollHeight
+      })
+    }
+
+    window.visualViewport.addEventListener('resize', handleViewportChange)
+    window.visualViewport.addEventListener('scroll', handleViewportChange)
+  }
 })
 
 onUnmounted(() => {
   window.removeEventListener('resize', checkWidth)
   if (resizeObserver) {
     resizeObserver.disconnect()
+  }
+  if (footerResizeObserver) {
+    footerResizeObserver.disconnect()
   }
 })
 

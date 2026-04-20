@@ -18,6 +18,8 @@
   --line-height-main: 1.4;
   --line-height-thinking: 1.2;
   --letter-spacing: 0.01em;
+  --input-container-height: 0px;
+  --footer-height: 0px;
 }
 
 @font-face {
