@@ -6,17 +6,32 @@
     :class="{ 'sidebar-hidden': !store.sidebarVisible, 'is-mobile': isMobile }"
   >
     <div class="top-mask" />
-    <button
+    <div
       v-if="!store.sidebarVisible"
-      class="expand-btn"
-      title="展开侧边栏"
-      @click="toggleSidebar"
+      class="top-left-actions"
     >
-      <Icon
-        :icon-class="'icon-sidebar'"
-        :font-size="16"
-      />
-    </button>
+      <button
+        class="action-btn"
+        title="展开侧边栏"
+        @click="toggleSidebar"
+      >
+        <Icon
+          :icon-class="'icon-sidebar'"
+          :font-size="16"
+        />
+      </button>
+      <span class="action-divider" />
+      <button
+        class="action-btn"
+        title="新对话"
+        @click="createChatFromCollapsed"
+      >
+        <Icon
+          :icon-class="'icon-chat_add'"
+          :font-size="16"
+        />
+      </button>
+    </div>
     <!-- 移动端侧边栏展开时的遮罩 -->
     <div
       v-if="isMobile && store.sidebarVisible"
@@ -117,6 +132,26 @@ const toggleSidebar = () => {
   store.setSidebarVisible(!store.sidebarVisible)
 }
 
+const createChatFromCollapsed = async () => {
+  try {
+    const newSessionId = await sessionApi.create()
+    if (newSessionId) {
+      store.messagesMap[newSessionId] = []
+      store.setActive(newSessionId)
+      localStorage.setItem('sessionId', newSessionId)
+      localStorage.setItem('isNewSession', 'true')
+      sessionStorage.setItem('is_session_active', 'true')
+      return
+    }
+  } catch (error) {
+    console.error('创建新会话失败:', error)
+  }
+
+  store.createChat()
+  localStorage.setItem('isNewSession', 'true')
+  sessionStorage.setItem('is_session_active', 'true')
+}
+
 // 监听消息发送，如果是移动端则自动收起侧边栏
 watch(
   () => store.isStreaming,
@@ -212,30 +247,46 @@ watch(
   --sidebar-width: 0px;
 }
 
-/* 展开按钮样式 */
-.expand-btn {
+/* 侧边栏收起时左上角组合按钮 */
+.top-left-actions {
   position: fixed;
-  top: 20px;
+  top: 15px;
   left: 20px;
-  width: 40px;
-  height: 40px;
+  height: 35px;
+  padding: 0 4px;
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 20px;
+  border-radius: 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  z-index: 101;
+  transition: all 0.2s ease;
+}
+
+.action-btn {
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: transparent;
+  border-radius: 15px;
   color: var(--text-sub);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 101;
-  /* 高于 top-mask (100) */
   transition: all 0.2s ease;
 }
 
-.expand-btn:hover {
+.action-btn:hover {
   background: var(--bg-hover);
   color: var(--text-main);
-  transform: translateX(2px);
+}
+
+.action-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--border);
 }
 
 /* 移动端侧边栏遮罩 */
@@ -267,7 +318,7 @@ watch(
   top: 0;
   left: var(--sidebar-width);
   right: 0;
-  height: 80px;
+  height: 70px;
   background: linear-gradient(to bottom, #0f172a 60%, transparent 100%);
   z-index: 100;
   /* 确保在所有内容之上 */
@@ -350,8 +401,8 @@ watch(
   display: flex;
   justify-content: center;
   background: transparent;
-  padding: 20px;
-  padding-right: calc(20px + 6px);
+  padding: 16px 20px 10px;
+  /* padding-right: calc(20px + 6px); */
   /* 20px 基础 padding + 6px 滚动条预留宽度 */
   z-index: 10;
   transition: all 0.3s ease;
@@ -361,14 +412,15 @@ watch(
   position: fixed;
   bottom: 0;
   left: var(--sidebar-width);
-  right: 0;
+  right: 8px;
   text-align: center;
-  padding: 10px 0;
+  padding: 6px 0;
   padding-right: 6px;
   /* 同步滚动条宽度 */
   background: #0f172a;
   color: rgba(255, 255, 255, 0.6);
-  font-size: 12px;
+  font-size: 11px;
+  line-height: 1.2;
   z-index: 5;
   transition: all 0.3s ease;
 }

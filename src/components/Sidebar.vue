@@ -489,7 +489,7 @@ onMounted(() => {
 }
 
 .new-chat-icon {
-  font-size: 16px;
+  font-size: var(--font-size-main);
   width: 16px;
   height: 16px;
   display: flex;
@@ -498,7 +498,7 @@ onMounted(() => {
 }
 
 .new-chat-text {
-  font-size: 16px;
+  font-size: var(--font-size-main);
   height: 16px;
   line-height: 16px;
   display: flex;
@@ -528,7 +528,7 @@ onMounted(() => {
   align-items: center;
   position: relative;
   margin-bottom: 2px;
-  font-size: 14px;
+  font-size: var(--font-size-main);
 }
 
 .chat-item:hover {
@@ -593,7 +593,7 @@ onMounted(() => {
   padding: 6px 10px;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: var(--font-size-md);
   color: var(--text-main);
 }
 
@@ -689,7 +689,7 @@ onMounted(() => {
   padding: 8px 12px;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: var(--font-size-thinking);
   color: var(--text-main);
   transition: background 0.2s;
 }
@@ -725,7 +725,7 @@ onMounted(() => {
 }
 
 .username {
-  font-size: 14px;
+  font-size: var(--font-size-main);
   font-weight: 500;
   color: var(--text-main);
   white-space: nowrap;
@@ -734,7 +734,7 @@ onMounted(() => {
 }
 
 .email {
-  font-size: 12px;
+  font-size: var(--font-size-thinking);
   color: var(--text-sub);
   white-space: nowrap;
   overflow: hidden;
@@ -742,7 +742,7 @@ onMounted(() => {
 }
 
 .login-tip {
-  font-size: 14px;
+  font-size: var(--font-size-thinking);
   color: var(--text-sub);
 }
 </style>

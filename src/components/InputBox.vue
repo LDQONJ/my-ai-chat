@@ -5,7 +5,7 @@
         ref="textareaRef"
         v-model="text"
         placeholder="给 LDQ's AI 发送消息"
-        rows="3"
+        rows="2"
         @focus="focus = true"
         @blur="focus = false"
         @keyup.enter="send"
@@ -129,7 +129,7 @@ const watchText = () => {
   align-items: flex-start;
   background: var(--bg-card);
   border-radius: 16px;
-  padding: 10px;
+  padding: 4px;
   border: 1px solid var(--border);
   transition: all 0.2s;
   max-width: 800px;

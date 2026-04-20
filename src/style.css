@@ -9,11 +9,47 @@
   --text-main: #e5e7eb;
   --text-sub: #94a3b8;
   --border: rgba(255, 255, 255, 0.05);
+  --font-size-main: 15px;
+  --font-size-thinking: 12px;
+  --font-size-md: 11px;
+  --font-family-text: "JetBrains Mono", "PingFang SC", -apple-system, BlinkMacSystemFont, "Microsoft YaHei", sans-serif;
+  --font-family-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+  --line-height-main: 1.4;
+  --line-height-thinking: 1.2;
+  --letter-spacing: 0.01em;
+}
+
+@font-face {
+  font-family: 'PingFang SC';
+  src: url('/fonts/苹方黑体-准-简.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('/fonts/JetBrainsMono-Medium.ttf') format('truetype');
+  unicode-range: U+0000-00FF, U+0100-024F, U+1E00-1EFF;
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+code,
+pre,
+kbd,
+samp {
+  font-family: var(--font-family-mono);
+  letter-spacing: var(--letter-spacing);
 }
 
 body {
   margin: 0;
   background: var(--bg-main);
   color: var(--text-main);
-  font-family: -apple-system, BlinkMacSystemFont;
+  font-family: var(--font-family-text);
+  letter-spacing: var(--letter-spacing);
+
 }

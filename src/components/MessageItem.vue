@@ -130,15 +130,38 @@ md.renderer.rules.fence = (tokens, idx, options, env, self) => {
 // Markdown 渲染
 function renderMarkdown(text, isLastBlock = false) {
   let html = md.render(text || '')
-  
-  // 如果是最后一个文本块且正在流式输出，在 HTML 末尾插入光标占位符
+
   if (isLastBlock && props.message.streaming) {
-    // 找到最后一个闭合标签（通常是 </p>、</li> 或 </div>）并在其前面插入
-    const lastTagIndex = html.lastIndexOf('</')
-    if (lastTagIndex !== -1) {
-      html = html.substring(0, lastTagIndex) + '<span class="cursor"></span>' + html.substring(lastTagIndex)
+    const cursor = '<span class="cursor"></span>'
+    const insertBefore =
+      html.lastIndexOf('</li>') !== -1
+        ? '</li>'
+        : html.lastIndexOf('</p>') !== -1
+          ? '</p>'
+          : html.lastIndexOf('</h6>') !== -1
+            ? '</h6>'
+            : html.lastIndexOf('</h5>') !== -1
+              ? '</h5>'
+              : html.lastIndexOf('</h4>') !== -1
+                ? '</h4>'
+                : html.lastIndexOf('</h3>') !== -1
+                  ? '</h3>'
+                  : html.lastIndexOf('</h2>') !== -1
+                    ? '</h2>'
+                    : html.lastIndexOf('</h1>') !== -1
+                      ? '</h1>'
+                      : html.lastIndexOf('</div>') !== -1
+                        ? '</div>'
+                        : null
+
+    if (insertBefore) {
+      const idx = html.lastIndexOf(insertBefore)
+      html = html.slice(0, idx) + cursor + html.slice(idx)
+    } else if (html.lastIndexOf('</') !== -1) {
+      const idx = html.lastIndexOf('</')
+      html = html.slice(0, idx) + cursor + html.slice(idx)
     } else {
-      html += '<span class="cursor"></span>'
+      html += cursor
     }
   }
 
@@ -200,8 +223,8 @@ const handleMarkdownClick = (event) => {
   background: #111827;
   padding: 10px 15px 10px 15px;
   border-radius: 26px;
-  font-size: 17px;
-  line-height: 1.5;
+  font-size: var(--font-size-main);
+  line-height: var(--line-height-main);
 }
 
 /* 思考部分样式 */
@@ -219,7 +242,7 @@ const handleMarkdownClick = (event) => {
   cursor: pointer;
   user-select: none;
   color: #94a3b8;
-  font-size: 14px;
+  font-size: var(--font-size-thinking);
   padding: 4px 0;
 }
 
@@ -237,12 +260,13 @@ const handleMarkdownClick = (event) => {
   transform: rotate(-90deg);
 }
 
-.thinking-content {
+.thinking-box .thinking-content {
   color: #64748b;
-  font-size: 14px;
+  font-size: var(--font-size-thinking);
   font-style: italic;
   padding: 8px 0;
-  line-height: 1.6;
+  line-height: var(--line-height-thinking);
+
 }
 
 .thinking-content :deep(p) {
@@ -269,8 +293,10 @@ const handleMarkdownClick = (event) => {
 
 /* markdown */
 .markdown {
-  line-height: 1.7;
+  font-size: var(--font-size-main);
+  line-height: var(--line-height-main);
   word-break: break-word;
+  font-family: var(--font-family-text);
 }
 
 .markdown :deep(.cursor) {
@@ -305,20 +331,41 @@ const handleMarkdownClick = (event) => {
   margin-bottom: 0;
 }
 
+.markdown :deep(h1),
+.markdown :deep(h2),
+.markdown :deep(h3),
+.markdown :deep(h4),
+.markdown :deep(h5),
+.markdown :deep(h6) {
+  font-size: 1em;
+  font-weight: 600;
+  margin: 10px 0 6px;
+  line-height: var(--line-height-main);
+}
+
+.markdown :deep(h1:first-child),
+.markdown :deep(h2:first-child),
+.markdown :deep(h3:first-child),
+.markdown :deep(h4:first-child),
+.markdown :deep(h5:first-child),
+.markdown :deep(h6:first-child) {
+  margin-top: 0;
+}
+
 /* 统一 Markdown 中的代码块样式 */
 .markdown :deep(.markdown-code-wrapper) {
   margin: 10px 0;
   border-radius: 10px;
   overflow: hidden;
   background: #0b1220;
-  font-family: SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+  font-family: var(--font-family-mono);
 }
 
 .markdown :deep(.markdown-code-header) {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 12px;
+  font-size: var(--font-size-md);
   padding: 6px 10px;
   background: #020617;
   color: var(--text-sub);
@@ -329,7 +376,7 @@ const handleMarkdownClick = (event) => {
   border: none;
   color: var(--text-sub);
   cursor: pointer;
-  font-size: 12px;
+  font-size: var(--font-size-md);
   padding: 2px 6px;
   border-radius: 4px;
   transition: all 0.2s;
@@ -345,11 +392,11 @@ const handleMarkdownClick = (event) => {
   padding: 12px;
   margin: 0;
   overflow-x: auto;
-  font-size: 14px;
+  font-size: var(--font-size-thinking);
 }
 
 .markdown :deep(code) {
-  font-family: SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+  font-family: var(--font-family-mono);
   font-size: 0.9em;
   background: rgba(255, 255, 255, 0.08);
   padding: 2px 4px;
@@ -360,7 +407,7 @@ const handleMarkdownClick = (event) => {
   background: transparent;
   padding: 0;
   border-radius: 0;
-  font-size: 14px;
+  font-size: var(--font-size-thinking);
 }
 
 /* code */
@@ -369,14 +416,14 @@ const handleMarkdownClick = (event) => {
   border-radius: 10px;
   overflow: hidden;
   background: #0b1220;
-  font-family: SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+  font-family: var(--font-family-mono);
 }
 
 .code-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 12px;
+  font-size: var(--font-size-md);
   padding: 6px 10px;
   background: #020617;
   color: var(--text-sub);
@@ -387,7 +434,7 @@ const handleMarkdownClick = (event) => {
   border: none;
   color: var(--text-sub);
   cursor: pointer;
-  font-size: 12px;
+  font-size: var(--font-size-md);
   padding: 2px 6px;
   border-radius: 4px;
   transition: all 0.2s;
@@ -402,7 +449,7 @@ const handleMarkdownClick = (event) => {
   margin: 0;
   padding: 12px;
   overflow-x: auto;
-  font-size: 14px;
+  font-size: var(--font-size-thinking);
 }
 
 /* cursor */
