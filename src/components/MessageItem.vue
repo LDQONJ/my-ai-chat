@@ -24,9 +24,9 @@
           </div>
           <div
             v-show="showThinking"
-            class="thinking-content"
+            class="thinking-content markdown"
+            v-html="renderMarkdown(message.thinking)"
           >
-            {{ message.thinking }}
           </div>
         </div>
 
@@ -186,9 +186,18 @@ const copy = text => {
   color: #64748b;
   font-size: 14px;
   font-style: italic;
-  white-space: pre-wrap;
   padding: 8px 0;
   line-height: 1.6;
+}
+
+.thinking-content :deep(p) {
+  margin: 4px 0;
+}
+
+.thinking-content :deep(ul),
+.thinking-content :deep(ol) {
+  margin: 4px 0;
+  padding-left: 20px;
 }
 
 /* 修改：让AI消息铺满整个界面 */
