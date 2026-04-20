@@ -267,7 +267,7 @@ watch(
   top: 0;
   left: var(--sidebar-width);
   right: 0;
-  height: 100px;
+  height: 80px;
   background: linear-gradient(to bottom, #0f172a 60%, transparent 100%);
   z-index: 100;
   /* 确保在所有内容之上 */
@@ -321,6 +321,7 @@ watch(
   scrollbar-color: transparent transparent;
   transition: scrollbar-color 0.3s ease;
   scroll-behavior: smooth;
+  transition: all 0.3s ease;
 }
 
 .main:hover {
