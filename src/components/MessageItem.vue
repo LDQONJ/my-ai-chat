@@ -3,64 +3,37 @@
     <template v-if="message.role === 'assistant'">
       <div class="bubble">
         <!-- 思考部分 -->
-        <div
-          v-if="message.thinking"
-          class="thinking-box"
-        >
-          <div
-            class="thinking-header"
-            @click="showThinking = !showThinking"
-          >
+        <div v-if="message.thinking" class="thinking-box">
+          <div class="thinking-header" @click="showThinking = !showThinking">
             <div class="thinking-title">
               <div :class="['icon', { rotate: !showThinking }]">
-                <Icon
-                  :icon-class="'icon-Down'"
-                  :font-size="13"
-                />
+                <Icon :icon-class="'icon-Down'" :font-size="13" />
               </div>
 
               <span>{{ isThinking ? '正在思考...' : '已完成思考' }}</span>
             </div>
           </div>
-          <div
-            lang="en"
-            v-show="showThinking"
-            class="thinking-content markdown"
-            @click="handleMarkdownClick"
-            v-html="renderMarkdown(message.thinking)"
-          >
+          <div lang="en" v-show="showThinking" class="thinking-content markdown" @click="handleMarkdownClick"
+            v-html="renderMarkdown(message.thinking)">
           </div>
         </div>
 
-        <template
-          v-for="(block, i) in message.blocks"
-          :key="i"
-        >
+        <template v-for="(block, i) in message.blocks" :key="i">
           <!-- 文本 -->
-          <div
-            lang="en"
-            v-if="block.type === 'text'"
-            class="markdown"
-            @click="handleMarkdownClick"
-            v-html="renderMarkdown(block.content, i === message.blocks.length - 1)"
-          />
+          <div lang="en" v-if="block.type === 'text'" class="markdown" @click="handleMarkdownClick"
+            v-html="renderMarkdown(block.content, i === message.blocks.length - 1)" />
 
           <!-- 代码块 -->
-          <div
-            v-else
-            class="code-wrapper"
-          >
+          <div v-else class="code-wrapper">
             <div class="code-header">
               <span>{{ block.lang || 'code' }}</span>
-              <button
-                class="copy-btn"
-                @click="copy(block.content, $event)"
-              >
+              <button class="copy-btn" @click="copy(block.content, $event)">
                 复制
               </button>
             </div>
 
-            <pre class="code-block"><code ref="setCodeRef">{{ block.content }}<span v-if="i === message.blocks.length - 1 && isStreaming" class="cursor"></span></code></pre>
+            <pre
+              class="code-block"><code ref="setCodeRef">{{ block.content }}<span v-if="i === message.blocks.length - 1 && isStreaming" class="cursor"></span></code></pre>
           </div>
         </template>
 
@@ -69,10 +42,7 @@
     </template>
 
     <!-- 用户消息 -->
-    <div
-      v-else
-      class="bubble user"
-    >
+    <div v-else class="bubble user">
       {{ formatUserText(message.content) }}
     </div>
   </div>
@@ -81,7 +51,6 @@
 <script setup>
 import MarkdownIt from 'markdown-it'
 import hljs from 'highlight.js'
-import 'highlight.js/styles/github-dark.css'
 import DOMPurify from 'dompurify'
 import { nextTick, computed, ref } from 'vue'
 import Icon from '@/components/common/Icon.vue'
@@ -485,7 +454,7 @@ const handleMarkdownClick = (event) => {
   margin: 10px 0;
   border-radius: 10px;
   overflow: hidden;
-  background: #0b1220;
+  background: var(--code-bg);
   font-family: var(--font-family-mono);
 }
 
@@ -495,7 +464,7 @@ const handleMarkdownClick = (event) => {
   align-items: center;
   font-size: var(--font-size-md);
   padding: 6px 10px;
-  background: #020617;
+  background: var(--code-header-bg);
   color: var(--text-sub);
 }
 
@@ -526,7 +495,7 @@ const handleMarkdownClick = (event) => {
 .markdown :deep(code) {
   font-family: var(--font-family-mono);
   font-size: 0.9em;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--code-inline-bg);
   padding: 2px 4px;
   border-radius: 4px;
 }
@@ -551,7 +520,7 @@ const handleMarkdownClick = (event) => {
   margin-top: 10px;
   border-radius: 10px;
   overflow: hidden;
-  background: #0b1220;
+  background: var(--code-bg);
   font-family: var(--font-family-mono);
 }
 
@@ -561,7 +530,7 @@ const handleMarkdownClick = (event) => {
   align-items: center;
   font-size: var(--font-size-md);
   padding: 6px 10px;
-  background: #020617;
+  background: var(--code-header-bg);
   color: var(--text-sub);
 }
 
@@ -600,6 +569,7 @@ const handleMarkdownClick = (event) => {
 }
 
 @keyframes blink {
+
   0%,
   100% {
     opacity: 1;

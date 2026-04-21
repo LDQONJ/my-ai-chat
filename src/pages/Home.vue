@@ -1,55 +1,28 @@
 <!-- 首页 -->
 
 <template>
-  <div
-    class="app"
-    :class="{ 'sidebar-hidden': !store.sidebarVisible, 'is-mobile': isMobile }"
-  >
+  <div class="app" :class="{ 'sidebar-hidden': !store.sidebarVisible, 'is-mobile': isMobile }">
     <div class="top-mask" />
-    <div
-      v-if="!store.sidebarVisible"
-      class="top-left-actions"
-    >
-      <button
-        class="action-btn"
-        title="展开侧边栏"
-        @click="toggleSidebar"
-      >
-        <Icon
-          :icon-class="'icon-sidebar'"
-          :font-size="16"
-        />
+    <div v-if="!store.sidebarVisible" class="top-left-actions">
+      <button class="action-btn" title="展开侧边栏" @click="toggleSidebar">
+        <Icon :icon-class="'icon-sidebar'" :font-size="16" />
       </button>
       <span class="action-divider" />
-      <button
-        class="action-btn"
-        title="新对话"
-        @click="createChatFromCollapsed"
-      >
-        <Icon
-          :icon-class="'icon-chat_add'"
-          :font-size="16"
-        />
+      <button class="action-btn" title="新对话" @click="createChatFromCollapsed">
+        <Icon :icon-class="'icon-chat_add'" :font-size="16" />
       </button>
     </div>
+    <!-- 主题切换 -->
+    <div class="top-right-actions">
+      <ThemeToggle />
+    </div>
     <!-- 移动端侧边栏展开时的遮罩 -->
-    <div
-      v-if="isMobile && store.sidebarVisible"
-      class="sidebar-overlay"
-      @click="store.setSidebarVisible(false)"
-    />
+    <div v-if="isMobile && store.sidebarVisible" class="sidebar-overlay" @click="store.setSidebarVisible(false)" />
     <Sidebar />
-    <div
-      ref="mainRef"
-      class="main"
-      @scroll="handleScroll"
-    >
+    <div ref="mainRef" class="main" @scroll="handleScroll">
       <ChatWindow />
     </div>
-    <div
-      ref="inputContainerRef"
-      class="input-container"
-    >
+    <div ref="inputContainerRef" class="input-container">
       <InputBox />
     </div>
     <div ref="footerRef" class="footer">
@@ -67,6 +40,7 @@ import Sidebar from '@/components/Sidebar.vue'
 import ChatWindow from '@/components/ChatWindow.vue'
 import InputBox from '@/components/InputBox.vue'
 import Icon from '@/components/common/Icon.vue'
+import ThemeToggle from '@/components/ThemeToggle.vue'
 
 const store = useChatStore()
 const userStore = useUserStore()
@@ -220,8 +194,8 @@ onMounted(() => {
       if (!mainRef.value) return
       const atBottomNow =
         mainRef.value.scrollHeight -
-          mainRef.value.scrollTop -
-          mainRef.value.clientHeight <
+        mainRef.value.scrollTop -
+        mainRef.value.clientHeight <
         80
 
       if (!atBottomNow) return
@@ -273,8 +247,8 @@ watch(
   display: flex;
   height: 100vh;
   height: 100dvh;
-  background: #0f172a;
-  color: #fff;
+  background: var(--bg-main);
+  color: var(--text-main);
   margin: 0;
   padding: 0;
   position: relative;
@@ -318,7 +292,7 @@ watch(
 }
 
 .action-btn:hover {
-  background: var(--bg-hover);
+  background: transparent;
   color: var(--text-main);
 }
 
@@ -326,6 +300,22 @@ watch(
   width: 1px;
   height: 16px;
   background: var(--border);
+}
+
+.top-right-actions {
+  position: fixed;
+  top: 15px;
+  right: 20px;
+  height: 35px;
+  width: 35px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 101;
+  transition: all 0.2s ease;
 }
 
 /* 移动端侧边栏遮罩 */
@@ -358,7 +348,7 @@ watch(
   left: var(--sidebar-width);
   right: 0;
   height: 70px;
-  background: linear-gradient(to bottom, #0f172a 60%, transparent 100%);
+  background: linear-gradient(to bottom, var(--bg-main) 60%, transparent 100%);
   z-index: 100;
   /* 确保在所有内容之上 */
   pointer-events: none;
@@ -375,7 +365,7 @@ watch(
   /* 极高层级，确保在遮罩之上 */
   width: 280px !important;
   transform: translateX(-100%) !important;
-  background: #1e293b !important;
+  background: var(--bg-sidebar) !important;
   box-shadow: 4px 0 15px rgba(0, 0, 0, 0.5) !important;
   transition: transform 0.3s ease !important;
 }
@@ -469,8 +459,8 @@ watch(
   padding: 4px 0;
   padding-right: 6px;
   /* 同步滚动条宽度 */
-  background: #0f172a;
-  color: rgba(255, 255, 255, 0.6);
+  background: var(--bg-main);
+  color: var(--text-sub);
   font-size: 10px;
   line-height: 1;
   z-index: 5;
