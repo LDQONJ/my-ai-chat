@@ -1,7 +1,7 @@
 <template>
   <div :class="['msg', message.role]">
     <template v-if="message.role === 'assistant'">
-      <div class="bubble">
+      <div class="bubble assistant">
         <!-- 思考部分 -->
         <div
           v-if="message.thinking"
@@ -62,8 +62,8 @@
             </div>
 
             <pre
-              class="code-block has-line-numbers"
-            ><code ref="setCodeRef" v-html="formatCodeWithLineNumbers(block.content)"></code><span v-if="i === message.blocks.length - 1 && isStreaming" class="cursor"></span></pre>
+              class="code-block"
+            ><code ref="setCodeRef">{{ block.content }}<span v-if="i === message.blocks.length - 1 && isStreaming" class="cursor"></span></code></pre>
           </div>
         </template>
 
@@ -191,19 +191,13 @@ md.renderer.rules.fence = (tokens, idx, options, env, self) => {
   const highlighted =
     options.highlight(token.content, langName) || token.content
 
-  // Split highlighted content into lines and wrap each line with a span
-  const lines = highlighted
-    .split('\n')
-    .map(line => `<span class="line">${line}</span>`)
-    .join('')
-
   return `
     <div class="markdown-code-wrapper">
       <div class="markdown-code-header">
         <span>${langName || 'code'}</span>
         <button class="markdown-copy-btn" data-content="${encodeURIComponent(token.content)}">复制</button>
       </div>
-      <pre class="hljs has-line-numbers"><code>${lines}</code></pre>
+      <pre class="hljs"><code>${highlighted}</code></pre>
     </div>
   `
 }
@@ -269,13 +263,6 @@ const isStreaming = computed(() => {
   return !!props.message.streaming
 })
 
-const formatCodeWithLineNumbers = codeContent => {
-  return codeContent
-    .split('\n')
-    .map(line => `<span class="line">${line}</span>`)
-    .join('')
-}
-
 // 复制
 const copy = (text, event) => {
   navigator.clipboard.writeText(text).then(() => {
@@ -309,14 +296,20 @@ const handleMarkdownClick = event => {
 
 .msg.user {
   justify-content: flex-end;
-  padding-right: 15px;
   color: var(--text-main-dark);
+}
+
+.bubble.user {
+  padding: 10px 15px;
+}
+
+.bubble.assistant {
+  padding: 0 15px;
 }
 
 .bubble {
   max-width: 70%;
   background: transparent;
-  padding: 10px 15px 10px 15px;
   border-radius: 26px;
   font-size: var(--font-size-main);
   line-height: var(--line-height-main);
@@ -609,33 +602,6 @@ const handleMarkdownClick = event => {
   padding: 12px;
   overflow-x: auto;
   font-size: var(--font-size-thinking);
-}
-
-/* 行号样式 */
-.has-line-numbers {
-  counter-reset: line-number;
-  padding-left: 30px; /* 为行号留出空间 */
-  position: relative;
-}
-
-.has-line-numbers .line {
-  position: relative;
-  display: block;
-}
-
-.has-line-numbers .line::before {
-  content: counter(line-number);
-  counter-increment: line-number;
-  position: absolute;
-  left: -30px; /* 将行号定位到左侧 */
-  top: 0;
-  color: var(--text-sub);
-  text-align: right;
-  width: 25px; /* 行号宽度 */
-  padding-right: 5px;
-  font-size: var(--font-size-thinking);
-  line-height: inherit;
-  user-select: none;
 }
 
 /* cursor */
