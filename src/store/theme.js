@@ -72,9 +72,50 @@ export const useThemeStore = defineStore('theme', {
       this.apply()
     },
 
-    toggle() {
-      const next = this.theme === 'dark' ? 'light' : 'dark'
-      this.setMode(next)
+    toggle(event, buttonEl) {
+      const isAppearanceTransition =
+        document.startViewTransition &&
+        !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+      if (!isAppearanceTransition || !event) {
+        const next = this.theme === 'dark' ? 'light' : 'dark'
+        this.setMode(next)
+        return
+      }
+
+      // 优先从传入的按钮引用获取位置，否则从 event 获取，确保移动端坐标精准
+      const targetEl = buttonEl || event.currentTarget
+      const rect = targetEl.getBoundingClientRect()
+      const x = rect.left + rect.width / 2
+      const y = rect.top + rect.height / 2
+
+      const endRadius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y))
+
+      const transition = document.startViewTransition(() => {
+        const next = this.theme === 'dark' ? 'light' : 'dark'
+        this.setMode(next)
+      })
+
+      transition.ready.then(() => {
+        // 增加 2px 的安全边距，确保圆形扩散完全覆盖角落
+        const clipPath = [
+          `circle(0px at ${x}px ${y}px)`,
+          `circle(${endRadius + 100}px at ${x}px ${y}px)`,
+        ]
+        const isDark = this.theme === 'dark'
+
+        document.documentElement.animate(
+          {
+            clipPath: isDark ? clipPath : [...clipPath].reverse(),
+          },
+          {
+            duration: 350,
+            easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+            pseudoElement: isDark ? '::view-transition-new(root)' : '::view-transition-old(root)',
+            fill: 'forwards',
+          },
+        )
+      })
     },
 
     apply() {

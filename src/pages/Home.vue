@@ -252,7 +252,7 @@ watch(
   margin: 0;
   padding: 0;
   position: relative;
-  transition: all 0.3s ease;
+  transition: transform 0.3s ease, padding 0.3s ease, width 0.3s ease;
   overflow: hidden;
 }
 
@@ -354,7 +354,7 @@ watch(
   z-index: 100;
   /* 确保在所有内容之上 */
   pointer-events: none;
-  transition: all 0.3s ease;
+  transition: transform 0.3s ease, left 0.3s ease, right 0.3s ease, width 0.3s ease;
 }
 
 /* 移动端布局适配 */

@@ -1,26 +1,20 @@
 <template>
-  <button
-    class="theme-toggle"
-    :title="theme === 'dark' ? '切换到亮色模式' : '切换到暗色模式'"
-    @click="toggleTheme"
-  >
-    <Icon
-      :icon-class="theme === 'dark' ? 'icon-light' : 'icon-dark'"
-      :font-size="16"
-    />
+  <button ref="buttonRef" class="theme-toggle" :title="theme === 'dark' ? '切换到亮色模式' : '切换到暗色模式'" @click="toggleTheme">
+    <Icon :icon-class="theme === 'dark' ? 'icon-light' : 'icon-dark'" :font-size="16" />
   </button>
 </template>
   
 <script setup>
 import Icon from '@/components/common/Icon.vue'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useThemeStore } from '@/store/theme'
 
 const themeStore = useThemeStore()
 const theme = computed(() => themeStore.theme)
+const buttonRef = ref(null)
 
-const toggleTheme = () => {
-  themeStore.toggle()
+const toggleTheme = (event) => {
+  themeStore.toggle(event, buttonRef.value)
 }
 </script>
   
@@ -43,5 +37,4 @@ const toggleTheme = () => {
   background: transparent;
   color: var(--text-main);
 }
-
 </style>

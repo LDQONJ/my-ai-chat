@@ -348,7 +348,7 @@ onMounted(() => {
   background: var(--bg-sidebar);
   padding: 16px 16px 0 16px;
   border-right: 1px solid var(--border);
-  transition: all 0.3s ease;
+  transition: width 0.3s ease, padding 0.3s ease, transform 0.3s ease;
   overflow: hidden;
   flex-shrink: 0;
   white-space: nowrap;

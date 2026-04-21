@@ -124,3 +124,43 @@ body {
 * {
   -webkit-tap-highlight-color: transparent;
 }
+
+/* 主题切换圆形扩散动画 */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+  display: block;
+  outline: none;
+  /* 强制 GPU 加速 */
+  backface-visibility: hidden;
+  perspective: 1000px;
+  transform: translateZ(0);
+}
+
+/* 移除 root 默认背景，防止切换瞬间闪白或闪黑 */
+::view-transition {
+  background-color: transparent;
+}
+
+::view-transition-group(root) {
+  animation-duration: 0s;
+}
+
+/* 当切换到深色模式时，让新的（深色）在上面 */
+[data-theme='dark']::view-transition-old(root) {
+  z-index: 1;
+}
+[data-theme='dark']::view-transition-new(root) {
+  z-index: 9999;
+}
+
+/* 当切换到亮色模式时，让旧的（深色）在上面，然后缩小露出下面的亮色 */
+[data-theme='light']::view-transition-old(root) {
+  z-index: 9999;
+}
+[data-theme='light']::view-transition-new(root) {
+  z-index: 1;
+}
+
+
