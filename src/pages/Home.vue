@@ -274,7 +274,7 @@ watch(
   align-items: center;
   gap: 2px;
   z-index: 101;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
 }
 
 .action-btn {
@@ -288,7 +288,7 @@ watch(
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
 }
 
 .action-btn:hover {
@@ -315,7 +315,7 @@ watch(
   align-items: center;
   justify-content: center;
   z-index: 101;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
 }
 
 /* 移动端侧边栏遮罩 */
@@ -348,7 +348,9 @@ watch(
   left: var(--sidebar-width);
   right: 0;
   height: 70px;
-  background: linear-gradient(to bottom, var(--bg-main) 60%, transparent 100%);
+  background-color: var(--bg-main);
+  -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
   z-index: 100;
   /* 确保在所有内容之上 */
   pointer-events: none;

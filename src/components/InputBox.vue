@@ -1,56 +1,29 @@
 <template>
   <div class="input-wrap">
     <div class="input-inner">
-      <textarea
-        ref="textareaRef"
-        v-model="text"
-        placeholder="给 LDQ's AI 发送消息"
-        rows="2"
-        @focus="focus = true"
-        @blur="focus = false"
-        @keyup.enter="send"
-      />
+      <textarea ref="textareaRef" v-model="text" placeholder="给 LDQ's AI 发送消息" rows="2" @focus="focus = true"
+        @blur="focus = false" @keyup.enter="send" />
 
       <!-- 深度思考按钮 -->
       <div class="input-footer">
-        <button
-          class="think-btn"
-          :class="{ active: store.isThink }"
-          @click="store.toggleThink"
-        >
+        <button class="think-btn" :class="{ active: store.isThink }" @click="store.toggleThink">
           <div class="think-icon">
-            <Icon
-              :icon-class="'icon-deepseek'"
-              :font-size="13"
-            />
+            <Icon :icon-class="'icon-deepseek'" :font-size="13" />
           </div>
           <span>深度思考</span>
         </button>
       </div>
 
-      <button
-        class="send-btn"
-        :class="{
-          'stop-btn': store.isStreaming,
-          disabled: isInputEmpty && !store.isStreaming,
-        }"
-        :disabled="isInputEmpty && !store.isStreaming"
-        :title="isInputEmpty && !store.isStreaming ? '请输入内容' : ''"
-        @click="send"
-      >
+      <button class="send-btn" :class="{
+        'stop-btn': store.isStreaming,
+        disabled: isInputEmpty && !store.isStreaming,
+      }" :disabled="isInputEmpty && !store.isStreaming" :title="isInputEmpty && !store.isStreaming ? '请输入内容' : ''"
+        @click="send">
         <div class="send-icon">
           <!-- 停止图标 -->
-          <Icon
-            v-if="store.isStreaming"
-            :icon-class="'icon-stop'"
-            :font-size="14"
-          />
+          <Icon v-if="store.isStreaming" :icon-class="'icon-stop'" :font-size="14" />
           <!-- 发送图标 -->
-          <Icon
-            v-else
-            :icon-class="'icon-up-arrow'"
-            :font-size="17"
-          />
+          <Icon v-else :icon-class="'icon-up-arrow'" :font-size="17" />
         </div>
       </button>
     </div>
@@ -131,7 +104,7 @@ const watchText = () => {
   border-radius: 16px;
   padding: 4px;
   border: 1px solid var(--border);
-  transition: all 0.2s;
+  transition: all 0.3s ease;
   max-width: 800px;
   position: relative;
   /* 为按钮定位提供参考 */
@@ -160,7 +133,7 @@ const watchText = () => {
   color: var(--text-sub);
   font-size: 13px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
 }
 
 .think-btn:hover {
@@ -184,7 +157,7 @@ textarea {
   /* 宽度占满 */
   background: transparent;
   border: none;
-  color: white;
+  color: var(--text-main);
   outline: none;
   resize: none;
   /* 禁用手动调整大小 */
