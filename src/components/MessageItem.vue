@@ -259,6 +259,7 @@ const handleMarkdownClick = (event) => {
 .msg.user {
   justify-content: flex-end;
   padding-right: 15px;
+  color: var(--text-main-dark);
 }
 
 .bubble {
