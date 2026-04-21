@@ -19,8 +19,8 @@ const messages = computed(() => store.messages)
 <style scoped>
 .chat-window {
   flex: 1;
-  padding: 90px 0px calc(var(--input-container-height) + var(--footer-height) - 70px) 0px;
-  scroll-padding-bottom: calc(var(--input-container-height) + var(--footer-height) - 70px);
+  padding: 90px 0px calc(var(--input-container-height) + var(--footer-height) - 65px) 0px;
+  scroll-padding-bottom: calc(var(--input-container-height) + var(--footer-height) - 65px);
   scroll-behavior: smooth;
   max-width: 800px;
   width: 100%;

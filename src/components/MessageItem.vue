@@ -23,6 +23,7 @@
             </div>
           </div>
           <div
+            lang="en"
             v-show="showThinking"
             class="thinking-content markdown"
             @click="handleMarkdownClick"
@@ -37,6 +38,7 @@
         >
           <!-- 文本 -->
           <div
+            lang="en"
             v-if="block.type === 'text'"
             class="markdown"
             @click="handleMarkdownClick"
@@ -71,7 +73,7 @@
       v-else
       class="bubble user"
     >
-      {{ message.content }}
+      {{ formatUserText(message.content) }}
     </div>
   </div>
 </template>
@@ -96,6 +98,7 @@ const isThinking = computed(() => {
 })
 
 const md = new MarkdownIt({
+  breaks: true,
   highlight(str, lang) {
     if (lang && hljs.getLanguage(lang)) {
       try {
@@ -107,6 +110,71 @@ const md = new MarkdownIt({
     return '' // use external default escaping
   },
 })
+
+const hasEnglishLetterRe = /[A-Za-z]/
+const englishFragmentRe = /[A-Za-z][\x20-\x7E\u00A0\u2018\u2019\u201C\u201D]*/g
+const longWordRe = /[A-Za-z][A-Za-z0-9_]{4,}/g
+const userLongWordRe = /[A-Za-z][A-Za-z0-9_]{4,}/g
+
+const insertSoftHyphens = (text) => {
+  return text.replace(longWordRe, word => word.split('').join('\u00AD'))
+}
+
+const formatUserText = (text) => {
+  const s = String(text ?? '')
+  return s.replace(userLongWordRe, word => word.split('').join('\u00AD'))
+}
+
+const wrapEnglishWithLang = (text) => {
+  let lastIndex = 0
+  let match
+  let out = ''
+  const escape = md.utils.escapeHtml
+  englishFragmentRe.lastIndex = 0
+
+  while ((match = englishFragmentRe.exec(text)) !== null) {
+    const start = match.index
+    const end = start + match[0].length
+    if (start > lastIndex) {
+      out += escape(text.slice(lastIndex, start))
+    }
+    const run = text.slice(start, end)
+    const trailingWhitespaceMatch = run.match(/\s+$/)
+    const trailingWhitespace = trailingWhitespaceMatch ? trailingWhitespaceMatch[0] : ''
+    const core = trailingWhitespace ? run.slice(0, -trailingWhitespace.length) : run
+    if (core) {
+      out += `<span lang="en">${escape(insertSoftHyphens(core))}</span>`
+    }
+    if (trailingWhitespace) {
+      out += escape(trailingWhitespace)
+    }
+    lastIndex = end
+  }
+
+  if (!out) {
+    return escape(text)
+  }
+  if (lastIndex < text.length) {
+    out += escape(text.slice(lastIndex))
+  }
+  return out
+}
+
+md.renderer.rules.text = (tokens, idx) => {
+  return wrapEnglishWithLang(tokens[idx].content)
+}
+
+const defaultCodeInline = md.renderer.rules.code_inline
+md.renderer.rules.code_inline = (tokens, idx, options, env, self) => {
+  const token = tokens[idx]
+  if (token?.content && hasEnglishLetterRe.test(token.content)) {
+    token.attrSet('lang', 'en')
+    token.content = insertSoftHyphens(token.content)
+  }
+  return defaultCodeInline
+    ? defaultCodeInline(tokens, idx, options, env, self)
+    : self.renderToken(tokens, idx, options)
+}
 
 // 自定义渲染规则，为 markdown 中的代码块添加头部和样式
 const defaultFence = md.renderer.rules.fence
@@ -129,7 +197,12 @@ md.renderer.rules.fence = (tokens, idx, options, env, self) => {
 
 // Markdown 渲染
 function renderMarkdown(text, isLastBlock = false) {
-  let html = md.render(text || '')
+  const normalizedText = (text || '')
+    .replace(/\\n/g, '\n')
+    .replace(/(^|\n)(\*\*[^*\n]+?\*\*)\n(?!\n)/g, '$1$2\n\n')
+    .replace(/(^|\n)(\s*\*\*[^*\n]+?\*\*)\s*([：:])\s*\n(?!\n)/g, '$1$2$3\n\n')
+
+  let html = md.render(normalizedText)
 
   if (isLastBlock && props.message.streaming) {
     const cursor = '<span class="cursor"></span>'
@@ -166,7 +239,7 @@ function renderMarkdown(text, isLastBlock = false) {
   }
 
   return DOMPurify.sanitize(html, {
-    ADD_ATTR: ['class'],
+    ADD_ATTR: ['class', 'lang'],
     ADD_TAGS: ['div', 'span', 'pre', 'code'],
   })
 }
@@ -216,15 +289,22 @@ const handleMarkdownClick = (event) => {
 
 .msg.user {
   justify-content: flex-end;
+  padding-right: 15px;
 }
 
 .bubble {
   max-width: 70%;
-  background: #111827;
+  background: transparent;
   padding: 10px 15px 10px 15px;
   border-radius: 26px;
   font-size: var(--font-size-main);
   line-height: var(--line-height-main);
+  hyphenate-limit-chars: 0 0 0;
+  hyphens: auto;
+  overflow-wrap: break-word;
+  text-align: justify;
+  text-justify: inter-ideograph;
+  text-align-last: left;
 }
 
 /* 思考部分样式 */
@@ -289,6 +369,15 @@ const handleMarkdownClick = (event) => {
 .msg.user .bubble {
   background: #2563eb;
   max-width: 70%;
+  hyphens: manual;
+}
+
+:global(.is-mobile) .msg.user {
+  padding-right: 8px;
+}
+
+:global(.is-mobile) .msg.user .bubble {
+  max-width: 100%;
 }
 
 /* markdown */
@@ -297,6 +386,12 @@ const handleMarkdownClick = (event) => {
   line-height: var(--line-height-main);
   word-break: break-word;
   font-family: var(--font-family-text);
+}
+
+.markdown :deep(span[lang='en']) {
+  hyphens: manual;
+  overflow-wrap: normal;
+  word-break: normal;
 }
 
 .markdown :deep(.cursor) {
@@ -352,6 +447,39 @@ const handleMarkdownClick = (event) => {
   margin-top: 0;
 }
 
+.markdown :deep(table) {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  width: max-content;
+  min-width: 100%;
+  table-layout: auto;
+  border-collapse: collapse;
+  margin: 12px 0;
+}
+
+.markdown :deep(th),
+.markdown :deep(td) {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.markdown :deep(th) {
+  text-align: left;
+  color: var(--text-sub);
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.markdown :deep(tr:last-child td) {
+  border-bottom: none;
+}
+
 /* 统一 Markdown 中的代码块样式 */
 .markdown :deep(.markdown-code-wrapper) {
   margin: 10px 0;
@@ -401,6 +529,14 @@ const handleMarkdownClick = (event) => {
   background: rgba(255, 255, 255, 0.08);
   padding: 2px 4px;
   border-radius: 4px;
+}
+
+.markdown :deep(p code),
+.markdown :deep(li code) {
+  hyphens: manual;
+  white-space: normal;
+  overflow-wrap: normal;
+  word-break: normal;
 }
 
 .markdown :deep(.hljs code) {

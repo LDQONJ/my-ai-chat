@@ -9,15 +9,15 @@
   --text-main: #e5e7eb;
   --text-sub: #94a3b8;
   --border: rgba(255, 255, 255, 0.05);
-  --font-size-main: 15px;
-  --font-size-thinking: 12px;
+  --font-size-main: 16px;
+  --font-size-thinking: 14px;
   --font-size-md: 11px;
   --font-family-text: "JetBrains Mono", "PingFang SC", -apple-system, BlinkMacSystemFont, "Microsoft YaHei", sans-serif;
   --font-family-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
     "Courier New", monospace;
   --line-height-main: 1.4;
   --line-height-thinking: 1.2;
-  --letter-spacing: 0.01em;
+  --letter-spacing: 0.03em;
   --input-container-height: 0px;
   --footer-height: 0px;
 }

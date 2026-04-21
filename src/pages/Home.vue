@@ -397,12 +397,25 @@ watch(
   left: 0;
 }
 
+.app.is-mobile .main {
+  padding: 4px 4px 8px;
+}
+
+.app.is-mobile .input-container {
+  padding: 12px 4px 4px;
+}
+
+.app.is-mobile .footer {
+  right: 0;
+  padding-right: 0;
+}
+
 .main {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0 20px;
+  padding: 0 12px 0 20px;
   /* 统一左右内边距 */
   overflow-y: auto;
   scrollbar-gutter: stable;
@@ -440,7 +453,7 @@ watch(
   display: flex;
   justify-content: center;
   background: transparent;
-  padding: 16px 20px 10px;
+  padding: 16px 20px 4px;
   /* padding-right: calc(20px + 6px); */
   /* 20px 基础 padding + 6px 滚动条预留宽度 */
   z-index: 10;
@@ -453,13 +466,13 @@ watch(
   left: var(--sidebar-width);
   right: 8px;
   text-align: center;
-  padding: 6px 0;
+  padding: 4px 0;
   padding-right: 6px;
   /* 同步滚动条宽度 */
   background: #0f172a;
   color: rgba(255, 255, 255, 0.6);
-  font-size: 11px;
-  line-height: 1.2;
+  font-size: 10px;
+  line-height: 1;
   z-index: 5;
   transition: all 0.3s ease;
 }
