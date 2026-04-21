@@ -196,11 +196,13 @@ textarea {
   font-family: inherit;
   font-size: 16px;
   overflow-y: auto;
-  padding-right: 50px;
-  padding-left: 7px;
-  padding-top: 7px;
-  padding-bottom: 7px;
-
+  padding: 8px;
+  hyphenate-limit-chars: 0 0 0;
+  hyphens: auto;
+  overflow-wrap: break-word;
+  text-align: justify;
+  text-justify: inter-ideograph;
+  text-align-last: left;
   /* 内容超出时显示滚动条 */
 }
 
