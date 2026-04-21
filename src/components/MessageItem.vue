@@ -427,6 +427,8 @@ const handleMarkdownClick = (event) => {
   table-layout: auto;
   border-collapse: collapse;
   margin: 12px 0;
+  font-size: var(--font-size-thinking);
+  line-height: 0.9;
 }
 
 .markdown :deep(th),

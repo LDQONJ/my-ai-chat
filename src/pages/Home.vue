@@ -3,6 +3,11 @@
 <template>
   <div class="app" :class="{ 'sidebar-hidden': !store.sidebarVisible, 'is-mobile': isMobile }">
     <div class="top-mask" />
+    <div v-if="messages.length > 0" class="top-title-container">
+      <div class="top-title">
+        {{ currentChatTitle }}
+      </div>
+    </div>
     <div v-if="!store.sidebarVisible" class="top-left-actions">
       <button class="action-btn" title="展开侧边栏" @click="toggleSidebar">
         <Icon :icon-class="'icon-sidebar'" :font-size="16" />
@@ -25,8 +30,10 @@
     <div ref="inputContainerRef" class="input-container">
       <InputBox />
     </div>
-    <div ref="footerRef" class="footer">
-      <span>内容由 AI 生成，请仔细甄别</span>
+    <div class="footer-container">
+      <div ref="footerRef" class="footer">
+        <span>内容由 AI 生成，请仔细甄别</span>
+      </div>
     </div>
   </div>
 </template>
@@ -45,6 +52,10 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
 const store = useChatStore()
 const userStore = useUserStore()
 const messages = computed(() => store.messages)
+const currentChatTitle = computed(() => {
+  const chat = store.chatList.find(c => c.id === store.activeId)
+  return chat ? chat.title : '新对话'
+})
 const mainRef = ref()
 const inputContainerRef = ref()
 const footerRef = ref()
@@ -260,6 +271,40 @@ watch(
   --sidebar-width: 0px;
 }
 
+/* 顶部标题样式 */
+.top-title-container {
+  position: fixed;
+  top: 15px;
+  left: var(--sidebar-width);
+  right: 80px;
+  height: 35px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 101;
+  transition: all 0.3s ease;
+}
+
+.top-title {
+  font-size: calc(var(--font-size-main) + 1px);
+  font-weight: 500;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app.is-mobile .top-title-container {
+  left: 70px;
+  right: 70px;
+  justify-content: center;
+}
+
+.app.is-mobile .top-title {
+  font-size: 14px;
+  text-align: center;
+}
+
 /* 侧边栏收起时左上角组合按钮 */
 .top-left-actions {
   position: fixed;
@@ -398,8 +443,8 @@ watch(
 }
 
 .app.is-mobile .footer {
-  right: 0;
-  padding-right: 0;
+  right: 4px;
+  padding: 12px 4px 4px;
 }
 
 .main {
@@ -444,6 +489,7 @@ watch(
   right: 0;
   display: flex;
   justify-content: center;
+
   background: transparent;
   padding: 16px 20px 4px;
   /* padding-right: calc(20px + 6px); */
@@ -452,20 +498,34 @@ watch(
   transition: all 0.3s ease;
 }
 
-.footer {
+.footer-container {
   position: fixed;
   bottom: 0;
   left: var(--sidebar-width);
+  right: 0;
+  display: flex;
+  justify-content: center;
+  padding-right: 6px;
+  /* 同步滚动条宽度 */
+  background: transparent;
+  z-index: 5;
+  transition: all 0.3s ease;
+}
+
+.footer {
   right: 8px;
-  text-align: center;
+  max-width: 800px;
+  width: 100%;
+  height: 100%;
   padding: 4px 0;
+  text-align: center;
+  display: flex;
+  justify-content: center;
   padding-right: 6px;
   /* 同步滚动条宽度 */
   background: var(--bg-main);
   color: var(--text-sub);
   font-size: 10px;
   line-height: 1;
-  z-index: 5;
-  transition: all 0.3s ease;
 }
 </style>

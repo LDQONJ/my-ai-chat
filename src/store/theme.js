@@ -122,6 +122,13 @@ export const useThemeStore = defineStore('theme', {
       const t = this.theme
       document.documentElement.setAttribute('data-theme', t)
 
+      // 同步 Element Plus 的深色模式
+      if (t === 'dark') {
+        document.documentElement.classList.add('dark')
+      } else {
+        document.documentElement.classList.remove('dark')
+      }
+
       const hljsLink = ensureStylesheetLink(HLJS_LINK_ID)
       hljsLink.href = t === 'dark' ? githubDarkUrl : githubLightUrl
 
