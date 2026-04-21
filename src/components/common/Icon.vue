@@ -10,21 +10,21 @@
 import { computed } from 'vue'
 
 const props = defineProps({
- // 图标类名
+  // 图标类名
   iconClass: {
     type: String,
-    default: ''
+    default: '',
   },
   // 图标大小
   fontSize: {
     type: [String, Number],
-    default: ''
-  }, 
+    default: '',
+  },
   // 图标颜色
   color: {
     type: String,
-    default: ''
-  }
+    default: '',
+  },
 })
 
 const iconClass = computed(() => props.iconClass)
@@ -32,9 +32,10 @@ const iconClass = computed(() => props.iconClass)
 const iconStyle = computed(() => {
   const style = {}
   if (props.fontSize) {
-    style.fontSize = typeof props.fontSize === 'number' 
-      ? `${props.fontSize}px` 
-      : props.fontSize
+    style.fontSize =
+      typeof props.fontSize === 'number'
+        ? `${props.fontSize}px`
+        : props.fontSize
   }
   if (props.color) {
     style.color = props.color

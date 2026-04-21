@@ -9,7 +9,7 @@
   --text-main-dark: #e5e7eb;
   --text-sub-dark: #94a3b8;
   --border-dark: rgba(255, 255, 255, 0.05);
-  
+
   /* 亮色模式 */
   --bg-main-light: #ffffff;
   --bg-sidebar-light: #f8fafc;
@@ -27,7 +27,7 @@
   --code-bg-light: #f8fafc;
   --code-header-bg-light: #e2e8f0;
   --code-inline-bg-light: rgba(2, 6, 23, 0.06);
-  
+
   /* 通用变量（根据主题动态切换） */
   --bg-main: var(--bg-main-dark);
   --bg-sidebar: var(--bg-sidebar-dark);
@@ -41,14 +41,18 @@
   --code-header-bg: var(--code-header-bg-dark);
   --code-inline-bg: var(--code-inline-bg-dark);
 
-  --primary: #2563eb;
+  --primary: hsl(221, 83%, 53%);
 
   --font-size-main: 15px;
   --font-size-thinking: 13px;
   --font-size-md: 11px;
-  --font-family-text: "JetBrains Mono", "PingFang SC", -apple-system, BlinkMacSystemFont, "Microsoft YaHei", sans-serif;
-  --font-family-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
-    "Courier New", monospace;
+  --letter-spacing: 0.03em;
+  --font-family-text:
+    'JetBrains Mono', 'PingFang SC', -apple-system, BlinkMacSystemFont,
+    'Microsoft YaHei', sans-serif;
+  --font-family-mono:
+    'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
   --bg-main: var(--bg-main-light);
   --bg-sidebar: var(--bg-sidebar-light);
   --bg-hover: var(--bg-hover-light);
@@ -64,7 +68,7 @@
 }
 
 /* 暗色模式主题 */
-[data-theme="dark"] {
+[data-theme='dark'] {
   --bg-main: var(--bg-main-dark);
   --bg-sidebar: var(--bg-sidebar-dark);
   --bg-hover: var(--bg-hover-dark);
@@ -110,7 +114,6 @@ body {
   color: var(--text-main);
   font-family: var(--font-family-text);
   letter-spacing: var(--letter-spacing);
-
 }
 
 * {
@@ -154,5 +157,3 @@ body {
 [data-theme='light']::view-transition-new(root) {
   z-index: 1;
 }
-
-

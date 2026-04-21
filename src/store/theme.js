@@ -7,7 +7,9 @@ const HLJS_LINK_ID = 'hljs-theme'
 
 function getSystemTheme() {
   if (typeof window === 'undefined') return 'dark'
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  return window.matchMedia('(prefers-color-scheme: dark)').matches
+    ? 'dark'
+    : 'light'
 }
 
 function ensureStylesheetLink(id) {
@@ -67,7 +69,10 @@ export const useThemeStore = defineStore('theme', {
     },
 
     setMode(mode) {
-      this.mode = mode === 'dark' || mode === 'light' || mode === 'system' ? mode : 'system'
+      this.mode =
+        mode === 'dark' || mode === 'light' || mode === 'system'
+          ? mode
+          : 'system'
       localStorage.setItem(STORAGE_KEY, this.mode)
       this.apply()
     },
@@ -89,7 +94,10 @@ export const useThemeStore = defineStore('theme', {
       const x = rect.left + rect.width / 2
       const y = rect.top + rect.height / 2
 
-      const endRadius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y))
+      const endRadius = Math.hypot(
+        Math.max(x, innerWidth - x),
+        Math.max(y, innerHeight - y),
+      )
 
       const transition = document.startViewTransition(() => {
         const next = this.theme === 'dark' ? 'light' : 'dark'
@@ -97,10 +105,9 @@ export const useThemeStore = defineStore('theme', {
       })
 
       transition.ready.then(() => {
-        // 增加 2px 的安全边距，确保圆形扩散完全覆盖角落
         const clipPath = [
           `circle(0px at ${x}px ${y}px)`,
-          `circle(${endRadius + 100}px at ${x}px ${y}px)`,
+          `circle(${endRadius}px at ${x}px ${y}px)`,
         ]
         const isDark = this.theme === 'dark'
 
@@ -109,9 +116,11 @@ export const useThemeStore = defineStore('theme', {
             clipPath: isDark ? clipPath : [...clipPath].reverse(),
           },
           {
-            duration: 350,
+            duration: 1200,
             easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
-            pseudoElement: isDark ? '::view-transition-new(root)' : '::view-transition-old(root)',
+            pseudoElement: isDark
+              ? '::view-transition-new(root)'
+              : '::view-transition-old(root)',
             fill: 'forwards',
           },
         )
@@ -136,4 +145,3 @@ export const useThemeStore = defineStore('theme', {
     },
   },
 })
-

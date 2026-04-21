@@ -1,29 +1,56 @@
 <template>
   <div class="input-wrap">
     <div class="input-inner">
-      <textarea ref="textareaRef" v-model="text" placeholder="给 LDQ's AI 发送消息" rows="2" @focus="focus = true"
-        @blur="focus = false" @keyup.enter="send" />
+      <textarea
+        ref="textareaRef"
+        v-model="text"
+        placeholder="给 LDQ's AI 发送消息"
+        rows="2"
+        @focus="focus = true"
+        @blur="focus = false"
+        @keydown.enter="handleEnter"
+      />
 
       <!-- 深度思考按钮 -->
       <div class="input-footer">
-        <button class="think-btn" :class="{ active: store.isThink }" @click="store.toggleThink">
+        <button
+          class="think-btn"
+          :class="{ active: store.isThink }"
+          @click="store.toggleThink"
+        >
           <div class="think-icon">
-            <Icon :icon-class="'icon-deepseek'" :font-size="13" />
+            <Icon
+              :icon-class="'icon-deepseek'"
+              :font-size="13"
+            />
           </div>
           <span>深度思考</span>
         </button>
       </div>
 
-      <button class="send-btn" :class="{
-        'stop-btn': store.isStreaming,
-        disabled: isInputEmpty && !store.isStreaming,
-      }" :disabled="isInputEmpty && !store.isStreaming" :title="isInputEmpty && !store.isStreaming ? '请输入内容' : ''"
-        @click="send">
+      <button
+        class="send-btn"
+        :class="{
+          'stop-btn': store.isStreaming,
+          disabled: isInputEmpty && !store.isStreaming,
+        }"
+        :disabled="isInputEmpty && !store.isStreaming"
+        :title="isInputEmpty && !store.isStreaming ? '请输入内容' : ''"
+        @click="send"
+      >
         <div class="send-icon">
           <!-- 停止图标 -->
-          <Icon v-if="store.isStreaming" :icon-class="'icon-stop'" :font-size="14" />
+          <Icon
+            v-if="store.isStreaming"
+            :icon-class="'icon-stop'"
+            :font-size="14"
+          />
           <!-- 发送图标 -->
-          <Icon v-else :icon-class="'icon-up-arrow'" :font-size="17" />
+          <Icon
+            v-else
+            :icon-class="'icon-up-arrow'"
+            :font-size="17"
+          />
         </div>
       </button>
     </div>
@@ -59,15 +86,30 @@ const send = () => {
   }
 }
 
-const handleShiftEnter = event => {
-  // Shift+Enter 换行
-  const textarea = event.target
-  const start = textarea.selectionStart
-  const end = textarea.selectionEnd
-  text.value = text.value.substring(0, start) + '\n' + text.value.substring(end)
+const handleEnter = event => {
+  if (event.ctrlKey) {
+    // Ctrl + Enter 换行
+    event.preventDefault() // 阻止默认行为（如表单提交）
+    const textarea = textareaRef.value
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const value = textarea.value
+    text.value = value.substring(0, start) + '\n' + value.substring(end)
+    nextTick(() => {
+      textarea.selectionStart = textarea.selectionEnd = start + 1
+      autoResize()
+    })
+  } else {
+    // Enter 发送
+    event.preventDefault()
+    send()
+  }
+}
+
+const handleShiftEnter = () => {
+  // Shift+Enter 换行现在由浏览器默认行为处理，这里只需要确保高度调整
   nextTick(() => {
-    textarea.selectionStart = textarea.selectionEnd = start + 1
-    autoResize(textarea)
+    autoResize()
   })
 }
 

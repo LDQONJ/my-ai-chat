@@ -1,20 +1,43 @@
 <!-- 首页 -->
 
 <template>
-  <div class="app" :class="{ 'sidebar-hidden': !store.sidebarVisible, 'is-mobile': isMobile }">
+  <div
+    class="app"
+    :class="{ 'sidebar-hidden': !store.sidebarVisible, 'is-mobile': isMobile }"
+  >
     <div class="top-mask" />
-    <div v-if="messages.length > 0" class="top-title-container">
+    <div
+      v-if="messages.length > 0"
+      class="top-title-container"
+    >
       <div class="top-title">
         {{ currentChatTitle }}
       </div>
     </div>
-    <div v-if="!store.sidebarVisible" class="top-left-actions">
-      <button class="action-btn" title="展开侧边栏" @click="toggleSidebar">
-        <Icon :icon-class="'icon-sidebar'" :font-size="16" />
+    <div
+      v-if="!store.sidebarVisible"
+      class="top-left-actions"
+    >
+      <button
+        class="action-btn"
+        title="展开侧边栏"
+        @click="toggleSidebar"
+      >
+        <Icon
+          :icon-class="'icon-sidebar'"
+          :font-size="16"
+        />
       </button>
       <span class="action-divider" />
-      <button class="action-btn" title="新对话" @click="createChatFromCollapsed">
-        <Icon :icon-class="'icon-chat_add'" :font-size="16" />
+      <button
+        class="action-btn"
+        title="新对话"
+        @click="createChatFromCollapsed"
+      >
+        <Icon
+          :icon-class="'icon-chat_add'"
+          :font-size="16"
+        />
       </button>
     </div>
     <!-- 主题切换 -->
@@ -22,16 +45,30 @@
       <ThemeToggle />
     </div>
     <!-- 移动端侧边栏展开时的遮罩 -->
-    <div v-if="isMobile && store.sidebarVisible" class="sidebar-overlay" @click="store.setSidebarVisible(false)" />
+    <div
+      v-if="isMobile && store.sidebarVisible"
+      class="sidebar-overlay"
+      @click="store.setSidebarVisible(false)"
+    />
     <Sidebar />
-    <div ref="mainRef" class="main" @scroll="handleScroll">
+    <div
+      ref="mainRef"
+      class="main"
+      @scroll="handleScroll"
+    >
       <ChatWindow />
     </div>
-    <div ref="inputContainerRef" class="input-container">
+    <div
+      ref="inputContainerRef"
+      class="input-container"
+    >
       <InputBox />
     </div>
     <div class="footer-container">
-      <div ref="footerRef" class="footer">
+      <div
+        ref="footerRef"
+        class="footer"
+      >
         <span>内容由 AI 生成，请仔细甄别</span>
       </div>
     </div>
@@ -205,8 +242,8 @@ onMounted(() => {
       if (!mainRef.value) return
       const atBottomNow =
         mainRef.value.scrollHeight -
-        mainRef.value.scrollTop -
-        mainRef.value.clientHeight <
+          mainRef.value.scrollTop -
+          mainRef.value.clientHeight <
         80
 
       if (!atBottomNow) return
@@ -263,7 +300,10 @@ watch(
   margin: 0;
   padding: 0;
   position: relative;
-  transition: transform 0.3s ease, padding 0.3s ease, width 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    padding 0.3s ease,
+    width 0.3s ease;
   overflow: hidden;
 }
 
@@ -399,7 +439,11 @@ watch(
   z-index: 100;
   /* 确保在所有内容之上 */
   pointer-events: none;
-  transition: transform 0.3s ease, left 0.3s ease, right 0.3s ease, width 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    left 0.3s ease,
+    right 0.3s ease,
+    width 0.3s ease;
 }
 
 /* 移动端布局适配 */

@@ -1,41 +1,94 @@
 <template>
-  <div class="sidebar" @click.stop>
+  <div
+    class="sidebar"
+    @click.stop
+  >
     <div class="sidebar-header">
       <div class="logo">LDQ's AI</div>
-      <button class="collapse-btn" title="收起侧边栏" @click="store.setSidebarVisible(false)">
-        <Icon :icon-class="'icon-sidebar'" :font-size="16" />
+      <button
+        class="collapse-btn"
+        title="收起侧边栏"
+        @click="store.setSidebarVisible(false)"
+      >
+        <Icon
+          :icon-class="'icon-sidebar'"
+          :font-size="16"
+        />
       </button>
     </div>
 
-    <div class="new-chat" style="justify-content: center" @click="createChat">
+    <div
+      class="new-chat"
+      style="justify-content: center"
+      @click="createChat"
+    >
       <div class="new-chat-icon">
-        <Icon :icon-class="'icon-chat_add'" :font-size="17" />
+        <Icon
+          :icon-class="'icon-chat_add'"
+          :font-size="17"
+        />
       </div>
       <span class="new-chat-text">开启新对话</span>
     </div>
 
     <div class="chat-list">
-      <div v-for="chat in chats" :key="chat.id" class="chat-item" :class="{ active: chat.id === activeId }"
-        @click="select(chat.id)">
-        <div v-if="renamingId === chat.id" class="rename-input-wrapper">
-          <input ref="renameInput" v-model="renamingTitle" class="rename-input" @click.stop
-            @keyup.enter="handleRename(chat.id)" @blur="cancelRename" />
+      <div
+        v-for="chat in chats"
+        :key="chat.id"
+        class="chat-item"
+        :class="{ active: chat.id === activeId }"
+        @click="select(chat.id)"
+      >
+        <div
+          v-if="renamingId === chat.id"
+          class="rename-input-wrapper"
+        >
+          <input
+            ref="renameInput"
+            v-model="renamingTitle"
+            class="rename-input"
+            @click.stop
+            @keyup.enter="handleRename(chat.id)"
+            @blur="cancelRename"
+          />
         </div>
         <template v-else>
           <span class="chat-title">{{ chat.title }}</span>
           <div class="chat-item-actions">
-            <button class="item-more-btn" @click.stop="toggleItemMenu(chat.id)">
-              <Icon :icon-class="'icon-more'" :font-size="14" />
+            <button
+              class="item-more-btn"
+              @click.stop="toggleItemMenu(chat.id)"
+            >
+              <Icon
+                :icon-class="'icon-more'"
+                :font-size="14"
+              />
             </button>
 
             <!-- 聊天项更多菜单 -->
-            <div v-if="itemMenuVisibleId === chat.id" class="item-more-menu" @click.stop>
-              <div class="item-menu-item" @click="startRename(chat)">
-                <Icon :icon-class="'icon-edit'" :font-size="12" />
+            <div
+              v-if="itemMenuVisibleId === chat.id"
+              class="item-more-menu"
+              @click.stop
+            >
+              <div
+                class="item-menu-item"
+                @click="startRename(chat)"
+              >
+                <Icon
+                  :icon-class="'icon-edit'"
+                  :font-size="12"
+                />
                 <span>重命名</span>
               </div>
-              <div class="item-menu-item delete" @click="handleDelete(chat.id)">
-                <Icon :icon-class="'icon-delete'" :font-size="12" />
+              <div
+                class="item-menu-item delete"
+                @click="handleDelete(chat.id)"
+              >
+                <Icon
+                  :icon-class="'icon-delete'"
+                  :font-size="12"
+                />
                 <span>删除</span>
               </div>
             </div>
@@ -46,12 +99,22 @@
 
     <!-- 用户栏 -->
     <div class="user-section">
-      <div class="user-info" @click="handleUserClick">
+      <div
+        class="user-info"
+        @click="handleUserClick"
+      >
         <div class="user-avatar">
-          <img :src="userStore.isLoggedIn ? fullAvatarUrl : userStore.defaultAvatar
-            " alt="用户头像" />
+          <img
+            :src="
+              userStore.isLoggedIn ? fullAvatarUrl : userStore.defaultAvatar
+            "
+            alt="用户头像"
+          />
         </div>
-        <div v-if="userStore.isLoggedIn" class="user-detail">
+        <div
+          v-if="userStore.isLoggedIn"
+          class="user-detail"
+        >
           <div class="username">
             {{ userStore.username }}
           </div>
@@ -59,21 +122,43 @@
             {{ userStore.email }}
           </div>
         </div>
-        <div v-else class="user-detail">
+        <div
+          v-else
+          class="user-detail"
+        >
           <div class="login-tip">点击登录/注册</div>
         </div>
       </div>
 
       <!-- 更多按钮 -->
-      <div v-if="userStore.isLoggedIn" class="more-options">
-        <button class="more-btn" @click.stop="showMoreMenu = !showMoreMenu">
-          <Icon :icon-class="'icon-more'" :font-size="16" />
+      <div
+        v-if="userStore.isLoggedIn"
+        class="more-options"
+      >
+        <button
+          class="more-btn"
+          @click.stop="showMoreMenu = !showMoreMenu"
+        >
+          <Icon
+            :icon-class="'icon-more'"
+            :font-size="16"
+          />
         </button>
 
         <!-- 弹出菜单 -->
-        <div v-if="showMoreMenu" class="more-menu" @click.stop>
-          <div class="menu-item logout" @click="handleLogout">
-            <Icon :icon-logout="'icon-logout'" :font-size="14" />
+        <div
+          v-if="showMoreMenu"
+          class="more-menu"
+          @click.stop
+        >
+          <div
+            class="menu-item logout"
+            @click="handleLogout"
+          >
+            <Icon
+              :icon-logout="'icon-logout'"
+              :font-size="14"
+            />
 
             <span>退出登录</span>
           </div>
@@ -82,7 +167,10 @@
     </div>
 
     <!-- 登录对话框 -->
-    <LoginDialog v-model:visible="showLoginDialog" @success="handleLoginSuccess" />
+    <LoginDialog
+      v-model:visible="showLoginDialog"
+      @success="handleLoginSuccess"
+    />
   </div>
 </template>
 
@@ -269,7 +357,7 @@ const handleLogout = () => {
   window.location.reload()
 }
 
-const toggleItemMenu = (id) => {
+const toggleItemMenu = id => {
   if (itemMenuVisibleId.value === id) {
     itemMenuVisibleId.value = null
   } else {
@@ -277,7 +365,7 @@ const toggleItemMenu = (id) => {
   }
 }
 
-const startRename = async (chat) => {
+const startRename = async chat => {
   renamingId.value = chat.id
   renamingTitle.value = chat.title
   itemMenuVisibleId.value = null
@@ -287,7 +375,7 @@ const startRename = async (chat) => {
   }
 }
 
-const handleRename = async (id) => {
+const handleRename = async id => {
   if (!renamingTitle.value.trim()) {
     ElMessage.warning('标题不能为空')
     return
@@ -311,7 +399,7 @@ const cancelRename = () => {
   renamingId.value = null
 }
 
-const handleDelete = async (id) => {
+const handleDelete = async id => {
   try {
     await sessionApi.delete(id)
     const index = store.chatList.findIndex(c => c.id === id)
@@ -348,7 +436,10 @@ onMounted(() => {
   background: var(--bg-sidebar);
   padding: 16px 16px 0 16px;
   border-right: 1px solid var(--border);
-  transition: width 0.3s ease, padding 0.3s ease, transform 0.3s ease;
+  transition:
+    width 0.3s ease,
+    padding 0.3s ease,
+    transform 0.3s ease;
   overflow: hidden;
   flex-shrink: 0;
   white-space: nowrap;

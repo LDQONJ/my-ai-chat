@@ -3,37 +3,67 @@
     <template v-if="message.role === 'assistant'">
       <div class="bubble">
         <!-- 思考部分 -->
-        <div v-if="message.thinking" class="thinking-box">
-          <div class="thinking-header" @click="showThinking = !showThinking">
+        <div
+          v-if="message.thinking"
+          class="thinking-box"
+        >
+          <div
+            class="thinking-header"
+            @click="showThinking = !showThinking"
+          >
             <div class="thinking-title">
               <div :class="['icon', { rotate: !showThinking }]">
-                <Icon :icon-class="'icon-Down'" :font-size="13" />
+                <Icon
+                  :icon-class="'icon-Down'"
+                  :font-size="13"
+                />
               </div>
 
               <span>{{ isThinking ? '正在思考...' : '已完成思考' }}</span>
             </div>
           </div>
-          <div lang="en" v-show="showThinking" class="thinking-content markdown" @click="handleMarkdownClick"
-            v-html="renderMarkdown(message.thinking)">
-          </div>
+          <div
+            lang="en"
+            v-show="showThinking"
+            class="thinking-content markdown"
+            @click="handleMarkdownClick"
+            v-html="renderMarkdown(message.thinking)"
+          ></div>
         </div>
 
-        <template v-for="(block, i) in message.blocks" :key="i">
+        <template
+          v-for="(block, i) in message.blocks"
+          :key="i"
+        >
           <!-- 文本 -->
-          <div lang="en" v-if="block.type === 'text'" class="markdown" @click="handleMarkdownClick"
-            v-html="renderMarkdown(block.content, i === message.blocks.length - 1)" />
+          <div
+            lang="en"
+            v-if="block.type === 'text'"
+            class="markdown"
+            @click="handleMarkdownClick"
+            v-html="
+              renderMarkdown(block.content, i === message.blocks.length - 1)
+            "
+          />
 
           <!-- 代码块 -->
-          <div v-else class="code-wrapper">
+          <div
+            v-else
+            class="code-wrapper"
+          >
             <div class="code-header">
               <span>{{ block.lang || 'code' }}</span>
-              <button class="copy-btn" @click="copy(block.content, $event)">
+              <button
+                class="copy-btn"
+                @click="copy(block.content, $event)"
+              >
                 复制
               </button>
             </div>
 
             <pre
-              class="code-block"><code ref="setCodeRef">{{ block.content }}<span v-if="i === message.blocks.length - 1 && isStreaming" class="cursor"></span></code></pre>
+              class="code-block has-line-numbers"
+            ><code ref="setCodeRef" v-html="formatCodeWithLineNumbers(block.content)"></code><span v-if="i === message.blocks.length - 1 && isStreaming" class="cursor"></span></pre>
           </div>
         </template>
 
@@ -42,7 +72,10 @@
     </template>
 
     <!-- 用户消息 -->
-    <div v-else class="bubble user">
+    <div
+      v-else
+      class="bubble user"
+    >
       {{ formatUserText(message.content) }}
     </div>
   </div>
@@ -85,16 +118,16 @@ const englishFragmentRe = /[A-Za-z][\x20-\x7E\u00A0\u2018\u2019\u201C\u201D]*/g
 const longWordRe = /[A-Za-z][A-Za-z0-9_]{4,}/g
 const userLongWordRe = /[A-Za-z][A-Za-z0-9_]{4,}/g
 
-const insertSoftHyphens = (text) => {
+const insertSoftHyphens = text => {
   return text.replace(longWordRe, word => word.split('').join('\u00AD'))
 }
 
-const formatUserText = (text) => {
+const formatUserText = text => {
   const s = String(text ?? '')
   return s.replace(userLongWordRe, word => word.split('').join('\u00AD'))
 }
 
-const wrapEnglishWithLang = (text) => {
+const wrapEnglishWithLang = text => {
   let lastIndex = 0
   let match
   let out = ''
@@ -109,8 +142,12 @@ const wrapEnglishWithLang = (text) => {
     }
     const run = text.slice(start, end)
     const trailingWhitespaceMatch = run.match(/\s+$/)
-    const trailingWhitespace = trailingWhitespaceMatch ? trailingWhitespaceMatch[0] : ''
-    const core = trailingWhitespace ? run.slice(0, -trailingWhitespace.length) : run
+    const trailingWhitespace = trailingWhitespaceMatch
+      ? trailingWhitespaceMatch[0]
+      : ''
+    const core = trailingWhitespace
+      ? run.slice(0, -trailingWhitespace.length)
+      : run
     if (core) {
       out += `<span lang="en">${escape(insertSoftHyphens(core))}</span>`
     }
@@ -151,7 +188,14 @@ md.renderer.rules.fence = (tokens, idx, options, env, self) => {
   const token = tokens[idx]
   const info = token.info ? token.info.trim() : ''
   const langName = info.split(/\s+/g)[0]
-  const highlighted = options.highlight(token.content, langName) || token.content
+  const highlighted =
+    options.highlight(token.content, langName) || token.content
+
+  // Split highlighted content into lines and wrap each line with a span
+  const lines = highlighted
+    .split('\n')
+    .map(line => `<span class="line">${line}</span>`)
+    .join('')
 
   return `
     <div class="markdown-code-wrapper">
@@ -159,7 +203,7 @@ md.renderer.rules.fence = (tokens, idx, options, env, self) => {
         <span>${langName || 'code'}</span>
         <button class="markdown-copy-btn" data-content="${encodeURIComponent(token.content)}">复制</button>
       </div>
-      <pre class="hljs"><code>${highlighted}</code></pre>
+      <pre class="hljs has-line-numbers"><code>${lines}</code></pre>
     </div>
   `
 }
@@ -225,6 +269,13 @@ const isStreaming = computed(() => {
   return !!props.message.streaming
 })
 
+const formatCodeWithLineNumbers = codeContent => {
+  return codeContent
+    .split('\n')
+    .map(line => `<span class="line">${line}</span>`)
+    .join('')
+}
+
 // 复制
 const copy = (text, event) => {
   navigator.clipboard.writeText(text).then(() => {
@@ -241,7 +292,7 @@ const copy = (text, event) => {
 }
 
 // 处理 markdown 中复制按钮的点击事件（事件委托）
-const handleMarkdownClick = (event) => {
+const handleMarkdownClick = event => {
   const target = event.target
   if (target.classList.contains('markdown-copy-btn')) {
     const content = decodeURIComponent(target.getAttribute('data-content'))
@@ -316,7 +367,6 @@ const handleMarkdownClick = (event) => {
   font-style: italic;
   padding: 8px 0;
   line-height: var(--line-height-thinking);
-
 }
 
 .thinking-content :deep(p) {
@@ -493,6 +543,7 @@ const handleMarkdownClick = (event) => {
   margin: 0;
   overflow-x: auto;
   font-size: var(--font-size-thinking);
+  line-height: 1.6;
 }
 
 .markdown :deep(code) {
@@ -560,6 +611,33 @@ const handleMarkdownClick = (event) => {
   font-size: var(--font-size-thinking);
 }
 
+/* 行号样式 */
+.has-line-numbers {
+  counter-reset: line-number;
+  padding-left: 30px; /* 为行号留出空间 */
+  position: relative;
+}
+
+.has-line-numbers .line {
+  position: relative;
+  display: block;
+}
+
+.has-line-numbers .line::before {
+  content: counter(line-number);
+  counter-increment: line-number;
+  position: absolute;
+  left: -30px; /* 将行号定位到左侧 */
+  top: 0;
+  color: var(--text-sub);
+  text-align: right;
+  width: 25px; /* 行号宽度 */
+  padding-right: 5px;
+  font-size: var(--font-size-thinking);
+  line-height: inherit;
+  user-select: none;
+}
+
 /* cursor */
 .cursor {
   display: inline-block;
@@ -572,7 +650,6 @@ const handleMarkdownClick = (event) => {
 }
 
 @keyframes blink {
-
   0%,
   100% {
     opacity: 1;
