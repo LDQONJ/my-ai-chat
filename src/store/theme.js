@@ -107,7 +107,7 @@ export const useThemeStore = defineStore('theme', {
       transition.ready.then(() => {
         const clipPath = [
           `circle(0px at ${x}px ${y}px)`,
-          `circle(${endRadius}px at ${x}px ${y}px)`,
+          `circle(${endRadius + 100}px at ${x}px ${y}px)`,
         ]
         const isDark = this.theme === 'dark'
 

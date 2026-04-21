@@ -43,10 +43,12 @@
 
   --primary: hsl(221, 83%, 53%);
 
-  --font-size-main: 15px;
+  --font-size-main: 16px;
   --font-size-thinking: 13px;
-  --font-size-md: 11px;
+  --font-size-md: 12px;
   --letter-spacing: 0.03em;
+  --line-height-main: 1.5;
+  --line-height-thinking: 1.4;
   --font-family-text:
     'JetBrains Mono', 'PingFang SC', -apple-system, BlinkMacSystemFont,
     'Microsoft YaHei', sans-serif;

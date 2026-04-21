@@ -179,7 +179,7 @@ import { ref, computed, onMounted, nextTick } from 'vue'
 
 import { useChatStore } from '@/store/chat'
 import { useUserStore } from '@/store/user'
-import { sessionApi } from '@/api/test'
+import { sessionApi } from '@/api/session'
 import Icon from '@/components/common/Icon.vue'
 import LoginDialog from '@/components/LoginDialog.vue'
 import { ElMessage } from 'element-plus'

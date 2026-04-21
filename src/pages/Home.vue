@@ -79,7 +79,8 @@
 import { ref, watch, nextTick, computed, onMounted, onUnmounted } from 'vue'
 import { useChatStore } from '@/store/chat'
 import { useUserStore } from '@/store/user'
-import { userApi, sessionApi } from '@/api/test'
+import { userApi } from '@/api/user'
+import { sessionApi } from '@/api/session'
 import Sidebar from '@/components/Sidebar.vue'
 import ChatWindow from '@/components/ChatWindow.vue'
 import InputBox from '@/components/InputBox.vue'
@@ -315,7 +316,7 @@ watch(
 .top-title-container {
   position: fixed;
   top: 15px;
-  left: var(--sidebar-width);
+  left: calc(var(--sidebar-width) + 80px);
   right: 80px;
   height: 35px;
   display: flex;
@@ -326,7 +327,7 @@ watch(
 }
 
 .top-title {
-  font-size: calc(var(--font-size-main) + 1px);
+  font-size: calc(var(--font-size-main) + 2px);
   font-weight: 500;
   color: var(--text-main);
   white-space: nowrap;
@@ -341,7 +342,7 @@ watch(
 }
 
 .app.is-mobile .top-title {
-  font-size: 14px;
+  font-size: calc(var(--font-size-main) - 2px);
   text-align: center;
 }
 
@@ -549,7 +550,7 @@ watch(
   right: 0;
   display: flex;
   justify-content: center;
-  padding-right: 6px;
+  padding: 0 20px;
   /* 同步滚动条宽度 */
   background: transparent;
   z-index: 5;

@@ -87,11 +87,13 @@ import hljs from 'highlight.js'
 import DOMPurify from 'dompurify'
 import { nextTick, computed, ref } from 'vue'
 import Icon from '@/components/common/Icon.vue'
+import { useChatStore } from '@/store/chat'
 
 const props = defineProps({
   message: Object,
 })
 
+const store = useChatStore()
 const showThinking = ref(true)
 
 // 是否正在思考中
@@ -383,14 +385,6 @@ const handleMarkdownClick = event => {
   background: #2563eb;
   max-width: 70%;
   hyphens: manual;
-}
-
-:global(.is-mobile) .msg.user {
-  padding-right: 8px;
-}
-
-:global(.is-mobile) .msg.user .bubble {
-  max-width: 100%;
 }
 
 /* markdown */
