@@ -10,6 +10,7 @@ export const useChatStore = defineStore('chat', {
     isStreaming: false,
     sidebarVisible: true,
     isThink: false,
+    isModelSwitched: localStorage.getItem('isModelSwitched') === 'true',
     abortController: null,
   }),
 
@@ -20,6 +21,11 @@ export const useChatStore = defineStore('chat', {
   },
 
   actions: {
+    setModelSwitched(val) {
+      this.isModelSwitched = val
+      localStorage.setItem('isModelSwitched', val ? 'true' : 'false')
+    },
+
     async sendStream(text) {
       if (this.isStreaming) return
 
@@ -69,6 +75,12 @@ export const useChatStore = defineStore('chat', {
         blocks: [],
         thinking: '', // 存储思考内容
         streaming: true,
+        modelSwitching: this.isModelSwitched, // 如果模型刚切换，显示提示
+      }
+
+      // 重置标志
+      if (this.isModelSwitched) {
+        this.setModelSwitched(false)
       }
 
       list.push(aiMsg)
@@ -85,6 +97,10 @@ export const useChatStore = defineStore('chat', {
         pending = true
 
         requestAnimationFrame(() => {
+          // 收到第一个回复块后，提示消失
+          if (currentMsg.modelSwitching) {
+            currentMsg.modelSwitching = false
+          }
           currentMsg.blocks = res.blocks
           currentMsg.thinking = res.thinking
           pending = false
@@ -110,6 +126,7 @@ export const useChatStore = defineStore('chat', {
       } finally {
         parser.end()
         currentMsg.streaming = false
+        currentMsg.modelSwitching = false // 确保结束时提示消失
         this.isStreaming = false
         this.abortController = null
       }

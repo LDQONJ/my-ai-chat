@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Home from '@/pages/Home.vue'
+import Settings from '@/pages/Settings.vue'
 
 const routes = [
   //默认路由重定向到首页
@@ -8,6 +9,11 @@ const routes = [
     path: '/home',
     name: 'Home',
     component: Home,
+  },
+  {
+    path: '/settings',
+    name: 'Settings',
+    component: Settings,
   },
   // 404 重定向到首页
   {

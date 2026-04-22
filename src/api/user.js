@@ -25,4 +25,12 @@ export const userApi = {
   me() {
     return request.get('/users/me')
   },
+
+  /**
+   * 更新用户信息
+   * @param {Object} data { username, email, phone, avatar }
+   */
+  update(data) {
+    return request.put('/users', data)
+  },
 }

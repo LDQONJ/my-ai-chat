@@ -130,39 +130,21 @@
         </div>
       </div>
 
-      <!-- 更多按钮 -->
+      <!-- 设置按钮 -->
       <div
         v-if="userStore.isLoggedIn"
-        class="more-options"
+        class="settings-option"
       >
         <button
-          class="more-btn"
-          @click.stop="showMoreMenu = !showMoreMenu"
+          class="settings-btn"
+          title="设置"
+          @click.stop="goToSettings"
         >
           <Icon
-            :icon-class="'icon-more'"
-            :font-size="16"
+            :icon-class="'icon-settings'"
+            :font-size="18"
           />
         </button>
-
-        <!-- 弹出菜单 -->
-        <div
-          v-if="showMoreMenu"
-          class="more-menu"
-          @click.stop
-        >
-          <div
-            class="menu-item logout"
-            @click="handleLogout"
-          >
-            <Icon
-              :icon-logout="'icon-logout'"
-              :font-size="14"
-            />
-
-            <span>退出登录</span>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -176,6 +158,7 @@
 
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
+import { useRouter } from 'vue-router'
 
 import { useChatStore } from '@/store/chat'
 import { useUserStore } from '@/store/user'
@@ -186,15 +169,19 @@ import { ElMessage } from 'element-plus'
 
 const store = useChatStore()
 const userStore = useUserStore()
+const router = useRouter()
 
 const chats = computed(() => store.chatList)
 const activeId = computed(() => store.activeId)
 const showLoginDialog = ref(false)
-const showMoreMenu = ref(false)
 const itemMenuVisibleId = ref(null)
 const renamingId = ref(null)
 const renamingTitle = ref('')
 const renameInput = ref(null)
+
+const goToSettings = () => {
+  router.push('/settings')
+}
 
 const fullAvatarUrl = computed(() => {
   if (!userStore.avatar) return userStore.defaultAvatar
@@ -349,14 +336,6 @@ const handleLoginSuccess = () => {
   console.log('登录成功，用户信息已更新')
 }
 
-const handleLogout = () => {
-  userStore.logout()
-  store.reset()
-  showMoreMenu.value = false
-  // 退出登录后刷新页面或跳转
-  window.location.reload()
-}
-
 const toggleItemMenu = id => {
   if (itemMenuVisibleId.value === id) {
     itemMenuVisibleId.value = null
@@ -424,7 +403,6 @@ const handleDelete = async id => {
 // 点击外部关闭更多菜单
 onMounted(() => {
   window.addEventListener('click', () => {
-    showMoreMenu.value = false
     itemMenuVisibleId.value = null
   })
 })
@@ -668,55 +646,26 @@ onMounted(() => {
   background: var(--bg-hover);
 }
 
-.more-options {
+.settings-option {
   position: relative;
 }
 
-.more-btn {
+.settings-btn {
   background: none;
   border: none;
   color: var(--text-sub);
   cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
+  padding: 6px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s;
 }
 
-.more-btn:hover {
+.settings-btn:hover {
   background: var(--bg-active);
   color: var(--text-main);
-}
-
-.more-menu {
-  position: absolute;
-  bottom: calc(100% + 8px);
-  right: 0;
-  background: var(--bg-sidebar);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 4px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  min-width: 120px;
-  z-index: 100;
-}
-
-.menu-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: var(--font-size-thinking);
-  color: var(--text-main);
-  transition: background 0.2s;
-}
-
-.menu-item:hover {
-  background: var(--bg-hover);
 }
 
 .menu-item.logout {
@@ -726,6 +675,7 @@ onMounted(() => {
 .user-avatar {
   width: 32px;
   height: 32px;
+  flex-shrink: 0;
   border-radius: 50%;
   background: var(--bg-active);
   display: flex;

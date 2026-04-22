@@ -487,9 +487,9 @@ watch(
   padding: 12px 4px 4px;
 }
 
-.app.is-mobile .footer {
+.app.is-mobile .footer-container {
   right: 4px;
-  padding: 12px 4px 4px;
+  padding: 0 4px 0;
 }
 
 .main {

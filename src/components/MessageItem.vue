@@ -2,6 +2,15 @@
   <div :class="['msg', message.role]">
     <template v-if="message.role === 'assistant'">
       <div class="bubble assistant">
+        <!-- 模型切换提示 -->
+        <div
+          v-if="message.modelSwitching"
+          class="model-switching-hint"
+        >
+          <div class="loading-spinner"></div>
+          <span>模型切换中，请稍后...</span>
+        </div>
+
         <!-- 思考部分 -->
         <div
           v-if="message.thinking"
@@ -303,6 +312,7 @@ const handleMarkdownClick = event => {
 
 .bubble.user {
   padding: 10px 15px;
+  margin-right: 12px;
 }
 
 .bubble.assistant {
@@ -374,10 +384,34 @@ const handleMarkdownClick = event => {
   padding-left: 20px;
 }
 
-/* 修改：让AI消息铺满整个界面 */
 .msg.assistant .bubble {
   max-width: 100%;
   width: 100%;
+}
+
+.model-switching-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-sub);
+  font-size: var(--font-size-thinking);
+  padding: 8px 0;
+  margin-bottom: 8px;
+}
+
+.loading-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--border);
+  border-top-color: var(--text-sub);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* 修复：精确控制用户消息的样式 */

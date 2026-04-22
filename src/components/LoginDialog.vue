@@ -399,6 +399,7 @@ const handleSubmit = async () => {
   position: relative;
   width: 80px;
   height: 80px;
+  flex-shrink: 0;
   border: 2px dashed var(--border);
   border-radius: 50%;
   display: flex;
