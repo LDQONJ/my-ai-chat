@@ -127,6 +127,17 @@ const createSession = async () => {
       localStorage.setItem('isNewSession', 'true')
       store.setActive(sessionId)
       store.messagesMap[sessionId] = []
+
+      // 立即添加到侧边栏列表
+      const isInList = store.chatList.some(chat => chat.id === sessionId)
+      if (!isInList) {
+        store.chatList.unshift({
+          id: sessionId,
+          title: '新对话',
+          lastMessage: '',
+        })
+      }
+
       console.log('会话创建成功，sessionId:', sessionId)
     }
   } catch (error) {
@@ -165,6 +176,16 @@ const createChatFromCollapsed = async () => {
       localStorage.setItem('sessionId', newSessionId)
       localStorage.setItem('isNewSession', 'true')
       sessionStorage.setItem('is_session_active', 'true')
+
+      // 立即添加到侧边栏列表
+      const isInList = store.chatList.some(chat => chat.id === newSessionId)
+      if (!isInList) {
+        store.chatList.unshift({
+          id: newSessionId,
+          title: '新对话',
+          lastMessage: '',
+        })
+      }
       return
     }
   } catch (error) {

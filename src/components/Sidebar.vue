@@ -82,6 +82,16 @@
                 <span>重命名</span>
               </div>
               <div
+                class="item-menu-item"
+                @click="openPromptDialog(chat)"
+              >
+                <Icon
+                  :icon-class="'icon-prompt'"
+                  :font-size="12"
+                />
+                <span>提示词</span>
+              </div>
+              <div
                 class="item-menu-item delete"
                 @click="handleDelete(chat.id)"
               >
@@ -153,6 +163,12 @@
       v-model:visible="showLoginDialog"
       @success="handleLoginSuccess"
     />
+
+    <!-- 会话提示词对话框 -->
+    <PromptDialog
+      v-model:visible="showPromptDialog"
+      :session-id="promptDialogSessionId"
+    />
   </div>
 </template>
 
@@ -165,6 +181,7 @@ import { useUserStore } from '@/store/user'
 import { sessionApi } from '@/api/session'
 import Icon from '@/components/common/Icon.vue'
 import LoginDialog from '@/components/LoginDialog.vue'
+import PromptDialog from '@/components/PromptDialog.vue'
 import { ElMessage } from 'element-plus'
 
 const store = useChatStore()
@@ -178,6 +195,8 @@ const itemMenuVisibleId = ref(null)
 const renamingId = ref(null)
 const renamingTitle = ref('')
 const renameInput = ref(null)
+const showPromptDialog = ref(false)
+const promptDialogSessionId = ref(null)
 
 const goToSettings = () => {
   router.push('/settings')
@@ -200,13 +219,11 @@ const fetchSessionList = async () => {
     const sessionList = await sessionApi.list()
     if (sessionList && Array.isArray(sessionList)) {
       // 将session列表转换为chatList格式
-      const chatList = sessionList
-        .filter(session => session.title && session.title !== '新对话')
-        .map(session => ({
-          id: session.id,
-          title: session.title || '新对话',
-          lastMessage: session.lastMessage || '',
-        }))
+      const chatList = sessionList.map(session => ({
+        id: session.id,
+        title: session.title || '新对话',
+        lastMessage: session.lastMessage || '',
+      }))
 
       // 更新store中的chatList
       store.chatList = chatList
@@ -265,8 +282,10 @@ const select = async (id, isAuto = false) => {
     }
     localStorage.setItem('sessionId', id)
     // 选择已有会话时清除新会话标志
-    // 如果是自动选择（如刷新页面），不清除标志，保留新会话生成标题的能力
-    if (!isAuto) {
+    // 如果是自动选择（如刷新页面），或者选择的是空会话（新对话），不清除标志，保留新会话生成标题的能力
+    const chat = store.chatList.find(c => c.id === id)
+    const isNewChat = chat && chat.title === '新对话'
+    if (!isAuto && !isNewChat) {
       localStorage.removeItem('isNewSession')
     }
 
@@ -299,6 +318,16 @@ const createChat = async () => {
     if (newSessionId) {
       // 设置空消息列表
       store.messagesMap[newSessionId] = []
+
+      // 立即添加到侧边栏列表
+      const isInList = store.chatList.some(chat => chat.id === newSessionId)
+      if (!isInList) {
+        store.chatList.unshift({
+          id: newSessionId,
+          title: '新对话',
+          lastMessage: '',
+        })
+      }
 
       // 设置为活跃会话
       store.setActive(newSessionId)
@@ -398,6 +427,12 @@ const handleDelete = async id => {
     ElMessage.error('删除失败')
     console.error(error)
   }
+}
+
+const openPromptDialog = chat => {
+  promptDialogSessionId.value = chat.id
+  showPromptDialog.value = true
+  itemMenuVisibleId.value = null
 }
 
 // 点击外部关闭更多菜单

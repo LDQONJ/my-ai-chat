@@ -10,6 +10,7 @@ export const useChatStore = defineStore('chat', {
     isStreaming: false,
     sidebarVisible: true,
     isThink: false,
+    isPromptEnabled: localStorage.getItem('isPromptEnabled') === 'true',
     isModelSwitched: localStorage.getItem('isModelSwitched') === 'true',
     abortController: null,
   }),
@@ -21,6 +22,11 @@ export const useChatStore = defineStore('chat', {
   },
 
   actions: {
+    setPromptEnabled(val) {
+      this.isPromptEnabled = val
+      localStorage.setItem('isPromptEnabled', val ? 'true' : 'false')
+    },
+
     setModelSwitched(val) {
       this.isModelSwitched = val
       localStorage.setItem('isModelSwitched', val ? 'true' : 'false')
@@ -34,30 +40,25 @@ export const useChatStore = defineStore('chat', {
       this.abortController = new AbortController()
 
       const think = this.isThink
+      const prompt = this.isPromptEnabled
 
-      // 检查是否是第一次发送消息的新会话
-      // 满足以下任一条件即视为新会话：
-      // 1. localStorage 中有 isNewSession 标志且消息列表为空
-      // 2. 当前活跃会话 ID 不在 chatList 中且消息列表为空
-      const isNewSessionFlag = localStorage.getItem('isNewSession') === 'true'
-      const isInChatList = this.chatList.some(chat => chat.id === this.activeId)
-      const shouldGenerateTitle =
-        (isNewSessionFlag || !isInChatList) && list.length === 0
+      // 检查是否需要生成标题（对于新会话的第一条消息）
+      const chat = this.chatList.find(c => c.id === this.activeId)
+      const isNewSession = !chat || chat.title === '新对话'
+      const shouldGenerateTitle = isNewSession && list.length === 0
 
-      // 如果是新会话且这是第一条消息，添加到侧边栏
-      if (shouldGenerateTitle) {
-        // 添加到聊天列表
-        if (!isInChatList) {
-          this.chatList.unshift({ id: this.activeId, title: '新对话' })
-        }
-        // 清除新会话标志
-        localStorage.removeItem('isNewSession')
-      } else {
-        // 如果是旧对话，将其移动到列表最上方
-        const index = this.chatList.findIndex(chat => chat.id === this.activeId)
+      // 如果会话不在列表中（正常情况下应该在），将其添加
+      const isInChatList = !!chat
+      if (shouldGenerateTitle && !isInChatList) {
+        this.chatList.unshift({ id: this.activeId, title: '新对话' })
+      }
+
+      // 如果不是新会话，将其移动到列表最上方
+      if (!shouldGenerateTitle && isInChatList) {
+        const index = this.chatList.findIndex(c => c.id === this.activeId)
         if (index > 0) {
-          const chat = this.chatList.splice(index, 1)[0]
-          this.chatList.unshift(chat)
+          const item = this.chatList.splice(index, 1)[0]
+          this.chatList.unshift(item)
         }
       }
 
@@ -115,6 +116,7 @@ export const useChatStore = defineStore('chat', {
             parser.parse(chunk)
           },
           think,
+          prompt,
           this.abortController.signal,
         )
       } catch (error) {

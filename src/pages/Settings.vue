@@ -145,6 +145,90 @@
         </div>
       </section>
 
+      <!-- 全局提示词 -->
+      <section class="settings-section">
+        <div class="section-header">
+          <div class="title-with-switch">
+            <h3>全局提示词</h3>
+            <div
+              class="switch-container"
+              @click="togglePromptEnabled"
+            >
+              <div
+                class="switch"
+                :class="{ active: chatStore.isPromptEnabled }"
+              >
+                <div class="switch-handle"></div>
+              </div>
+              <span class="switch-label">{{
+                chatStore.isPromptEnabled ? '已开启' : '已关闭'
+              }}</span>
+            </div>
+          </div>
+          <button
+            v-if="!isEditingPrompt"
+            class="edit-btn"
+            @click="startEditingPrompt"
+          >
+            <Icon
+              icon-class="icon-edit"
+              :font-size="14"
+            />
+            <span>修改</span>
+          </button>
+          <div
+            v-else
+            class="edit-actions"
+          >
+            <button
+              class="save-btn"
+              :loading="savingPrompt"
+              @click="savePrompt"
+            >
+              保存
+            </button>
+            <button
+              class="cancel-btn"
+              @click="cancelEditingPrompt"
+            >
+              取消
+            </button>
+          </div>
+        </div>
+        <div class="prompt-card">
+          <div class="field">
+            <label>角色设定 (Persona)</label>
+            <textarea
+              v-if="isEditingPrompt"
+              v-model="editPromptForm.persona"
+              placeholder="例如：你是一个专业的技术顾问..."
+              rows="3"
+            ></textarea>
+            <div
+              v-else
+              class="prompt-text"
+            >
+              {{ globalPrompt.persona || '未设置' }}
+            </div>
+          </div>
+          <div class="field">
+            <label>回复规则 (Rules)</label>
+            <textarea
+              v-if="isEditingPrompt"
+              v-model="editPromptForm.rules"
+              placeholder="例如：使用简洁的语言回复..."
+              rows="5"
+            ></textarea>
+            <div
+              v-else
+              class="prompt-text"
+            >
+              {{ globalPrompt.rules || '未设置' }}
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- 退出登录 -->
       <section class="settings-section logout-section">
         <button
@@ -170,6 +254,7 @@ import { useChatStore } from '@/store/chat'
 import { modelApi } from '@/api/model'
 import { userApi } from '@/api/user'
 import { fileApi } from '@/api/file'
+import { promptApi } from '@/api/prompt'
 import Icon from '@/components/common/Icon.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
@@ -181,6 +266,17 @@ const models = ref([])
 const currentModelId = ref('')
 const loadingModels = ref(false)
 const fileInput = ref(null)
+
+const isEditingPrompt = ref(false)
+const savingPrompt = ref(false)
+const globalPrompt = reactive({
+  persona: '',
+  rules: '',
+})
+const editPromptForm = reactive({
+  persona: '',
+  rules: '',
+})
 
 const isEditing = ref(false)
 const savingUser = ref(false)
@@ -215,6 +311,46 @@ const startEditing = () => {
 
 const cancelEditing = () => {
   isEditing.value = false
+}
+
+const togglePromptEnabled = () => {
+  chatStore.setPromptEnabled(!chatStore.isPromptEnabled)
+}
+
+const fetchGlobalPrompt = async () => {
+  try {
+    const res = await promptApi.getGlobal()
+    globalPrompt.persona = res.persona || ''
+    globalPrompt.rules = res.rules || ''
+  } catch (error) {
+    console.error('获取全局提示词失败:', error)
+  }
+}
+
+const startEditingPrompt = () => {
+  editPromptForm.persona = globalPrompt.persona
+  editPromptForm.rules = globalPrompt.rules
+  isEditingPrompt.value = true
+}
+
+const cancelEditingPrompt = () => {
+  isEditingPrompt.value = false
+}
+
+const savePrompt = async () => {
+  savingPrompt.value = true
+  try {
+    await promptApi.setGlobal(editPromptForm)
+    globalPrompt.persona = editPromptForm.persona
+    globalPrompt.rules = editPromptForm.rules
+    ElMessage.success('更新成功')
+    isEditingPrompt.value = false
+  } catch (error) {
+    console.error('更新全局提示词失败:', error)
+    ElMessage.error(error.message || '更新失败')
+  } finally {
+    savingPrompt.value = false
+  }
 }
 
 const saveUserInfo = async () => {
@@ -322,6 +458,7 @@ onMounted(() => {
     return
   }
   fetchModels()
+  fetchGlobalPrompt()
 })
 </script>
 
@@ -385,6 +522,54 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
+}
+
+.title-with-switch {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.switch-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.switch {
+  width: 40px;
+  height: 20px;
+  background-color: var(--border);
+  border-radius: 10px;
+  position: relative;
+  transition: all 0.3s;
+}
+
+.switch.active {
+  background-color: var(--primary);
+}
+
+.switch-handle {
+  width: 16px;
+  height: 16px;
+  background-color: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: all 0.3s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.switch.active .switch-handle {
+  left: 22px;
+}
+
+.switch-label {
+  font-size: 13px;
+  color: var(--text-sub);
 }
 
 .edit-btn {
@@ -509,7 +694,8 @@ onMounted(() => {
   color: var(--text-main);
 }
 
-.field input {
+.field input,
+.field textarea {
   background: var(--bg-main);
   border: 1px solid var(--border);
   color: var(--text-main);
@@ -519,8 +705,37 @@ onMounted(() => {
   outline: none;
 }
 
-.field input:focus {
+.field input:focus,
+.field textarea:focus {
   border-color: var(--primary);
+}
+
+.field textarea {
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+.prompt-card {
+  padding: 24px;
+  background-color: var(--bg-card);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.prompt-text {
+  font-size: 14px;
+  color: var(--text-main);
+  white-space: pre-wrap;
+  background: var(--bg-main);
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  line-height: 1.5;
+  min-height: 40px;
 }
 
 .model-list {

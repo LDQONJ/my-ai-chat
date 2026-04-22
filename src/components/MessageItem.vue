@@ -381,7 +381,12 @@ const handleMarkdownClick = event => {
 .thinking-content :deep(ul),
 .thinking-content :deep(ol) {
   margin: 4px 0;
-  padding-left: 20px;
+  padding-left: 0.7em;
+}
+
+.thinking-content > :deep(ul),
+.thinking-content > :deep(ol) {
+  margin-left: 0.5em;
 }
 
 .msg.assistant .bubble {
@@ -447,8 +452,13 @@ const handleMarkdownClick = event => {
 
 .markdown :deep(ul),
 .markdown :deep(ol) {
-  padding-left: 24px;
+  padding-left: 0.7em;
   margin: 8px 0;
+}
+
+.markdown > :deep(ul),
+.markdown > :deep(ol) {
+  margin-left: 0.9em;
 }
 
 .markdown :deep(li) {

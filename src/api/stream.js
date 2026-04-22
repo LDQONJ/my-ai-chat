@@ -1,5 +1,11 @@
 import axios from 'axios'
-export async function streamChat(messages, onChunk, think = false, signal) {
+export async function streamChat(
+  messages,
+  onChunk,
+  think = false,
+  prompt = false,
+  signal,
+) {
   console.log(messages)
   const userMessage = messages.filter(msg => msg.role === 'user')
   if (!userMessage.length) return
@@ -20,6 +26,7 @@ export async function streamChat(messages, onChunk, think = false, signal) {
       sessionId: localStorage.getItem('sessionId'),
       text: userMessage[userMessage.length - 1].content,
       think,
+      prompt,
     }),
     signal,
   })
@@ -58,6 +65,8 @@ export async function streamChat(messages, onChunk, think = false, signal) {
   }
 }
 
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
+
 export async function generateTitle(id, onChunk) {
   const host = import.meta.env.VITE_API_HOST
   const token = localStorage.getItem('token')
@@ -94,6 +103,7 @@ export async function generateTitle(id, onChunk) {
         const json = JSON.parse(jsonLine)
 
         if (json.content) {
+          await delay(100)
           onChunk(json)
         }
       } catch (e) {
