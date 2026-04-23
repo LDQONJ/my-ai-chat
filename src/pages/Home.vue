@@ -133,13 +133,13 @@ const touchStartX = ref(0)
 const touchStartY = ref(0)
 const savedMainScrollTop = ref(0)
 
-const handleTouchStart = (e) => {
+const handleTouchStart = e => {
   if (!isMobile.value) return
   touchStartX.value = e.touches[0].clientX
   touchStartY.value = e.touches[0].clientY
 }
 
-const handleTouchEnd = (e) => {
+const handleTouchEnd = e => {
   if (!isMobile.value) return
 
   const touchEndX = e.changedTouches[0].clientX
@@ -287,6 +287,7 @@ onMounted(() => {
   window.addEventListener('resize', checkWidth)
 
   refreshUserInfo()
+  store.initModel()
 
   const token = localStorage.getItem('token')
   if (!token) {

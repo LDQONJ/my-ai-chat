@@ -156,8 +156,8 @@ const countdown = ref(60)
 const fileInput = ref(null)
 
 const form = reactive({
-  username: '',
-  password: '',
+  username: 'test',
+  password: '123456',
   email: '',
   code: '',
   avatar: '',

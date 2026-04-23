@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import { streamChat, generateTitle } from '../api/stream'
 import { createMarkdownStreamParser } from '../utils/markdownStreamParser'
+import { modelApi } from '../api/model'
+import { ElMessage } from 'element-plus'
 
 export const useChatStore = defineStore('chat', {
   state: () => ({
@@ -10,6 +12,8 @@ export const useChatStore = defineStore('chat', {
     isStreaming: false,
     sidebarVisible: true,
     isThink: false,
+    currentModelId: localStorage.getItem('currentModelId') || '',
+    currentModelName: localStorage.getItem('currentModelName') || '',
     isPromptEnabled: localStorage.getItem('isPromptEnabled') === 'true',
     isModelSwitched: localStorage.getItem('isModelSwitched') === 'true',
     abortController: null,
@@ -22,6 +26,15 @@ export const useChatStore = defineStore('chat', {
   },
 
   actions: {
+    async initModel() {
+      try {
+        const currentRes = await modelApi.current()
+        this.setCurrentModel(currentRes.id, currentRes.name)
+      } catch (error) {
+        console.error('初始化模型失败:', error)
+      }
+    },
+
     setPromptEnabled(val) {
       this.isPromptEnabled = val
       localStorage.setItem('isPromptEnabled', val ? 'true' : 'false')
@@ -30,6 +43,18 @@ export const useChatStore = defineStore('chat', {
     setModelSwitched(val) {
       this.isModelSwitched = val
       localStorage.setItem('isModelSwitched', val ? 'true' : 'false')
+    },
+
+    setCurrentModel(modelId, modelName) {
+      this.currentModelId = modelId || ''
+      this.currentModelName = modelName || ''
+      localStorage.setItem('currentModelId', this.currentModelId)
+      localStorage.setItem('currentModelName', this.currentModelName)
+
+      // 如果是 deepseek 模型，自动开启思考模式
+      if (this.currentModelName.toLowerCase().includes('deepseek')) {
+        this.isThink = true
+      }
     },
 
     async sendStream(text) {
@@ -178,6 +203,15 @@ export const useChatStore = defineStore('chat', {
     },
 
     toggleThink() {
+      // 如果当前是 DeepSeek 模型，不允许关闭思考模式
+      if (
+        this.isThink &&
+        (this.currentModelId.toLowerCase().includes('deepseek') ||
+          this.currentModelName.toLowerCase().includes('deepseek'))
+      ) {
+        ElMessage.warning('DeepSeek-R1模型只支持思考模式')
+        return
+      }
       this.isThink = !this.isThink
     },
 

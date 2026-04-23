@@ -117,7 +117,7 @@
         <br />
         <div class="model-selection">
           <el-select
-            :model-value="currentModelId"
+            :model-value="chatStore.currentModelId"
             class="model-select"
             :placeholder="loadingModels ? '加载中...' : '请选择模型'"
             :loading="loadingModels"
@@ -134,7 +134,7 @@
                 <div class="model-option-header">
                   <span class="model-name">{{ model.name }}</span>
                   <Icon
-                    v-if="currentModelId === model.id"
+                    v-if="chatStore.currentModelId === model.id"
                     icon-class="icon-success"
                     :font-size="14"
                   />
@@ -268,7 +268,6 @@ const userStore = useUserStore()
 const chatStore = useChatStore()
 
 const models = ref([])
-const currentModelId = ref('')
 const loadingModels = ref(false)
 const fileInput = ref(null)
 
@@ -441,7 +440,7 @@ const fetchModels = async () => {
       modelApi.current(),
     ])
     models.value = listRes
-    currentModelId.value = currentRes.id
+    chatStore.setCurrentModel(currentRes.id, currentRes.name)
   } catch (error) {
     console.error('获取模型列表失败:', error)
     ElMessage.error('获取模型列表失败')
@@ -451,10 +450,11 @@ const fetchModels = async () => {
 }
 
 const changeModel = async modelId => {
-  if (currentModelId.value === modelId) return
+  if (chatStore.currentModelId === modelId) return
   try {
+    const model = models.value.find(m => m.id === modelId)
     await modelApi.change(modelId)
-    currentModelId.value = modelId
+    chatStore.setCurrentModel(modelId, model?.name || '')
     chatStore.setModelSwitched(true)
     ElMessage.success('模型切换成功')
   } catch (error) {
