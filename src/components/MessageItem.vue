@@ -2,13 +2,13 @@
   <div :class="['msg', message.role]">
     <template v-if="message.role === 'assistant'">
       <div class="bubble assistant">
-        <!-- 模型切换提示 -->
+        <!-- 模型加载提示 -->
         <div
-          v-if="message.modelSwitching"
-          class="model-switching-hint"
+          v-if="message.modelLoading"
+          class="model-loading-hint"
         >
           <div class="loading-spinner"></div>
-          <span>模型切换中，请稍后...</span>
+          <span>模型加载中，请稍后...</span>
         </div>
 
         <!-- 思考部分 -->
@@ -394,7 +394,7 @@ const handleMarkdownClick = event => {
   width: 100%;
 }
 
-.model-switching-hint {
+.model-loading-hint {
   display: flex;
   align-items: center;
   gap: 8px;

@@ -117,7 +117,7 @@
         <br />
         <div class="model-selection">
           <el-select
-            :model-value="chatStore.currentModelId"
+            :model-value="loadingModels ? '' : chatStore.currentModelId"
             class="model-select"
             :placeholder="loadingModels ? '加载中...' : '请选择模型'"
             :loading="loadingModels"

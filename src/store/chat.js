@@ -101,7 +101,7 @@ export const useChatStore = defineStore('chat', {
         blocks: [],
         thinking: '', // 存储思考内容
         streaming: true,
-        modelSwitching: this.isModelSwitched, // 如果模型刚切换，显示提示
+        modelLoading: true, // 默认显示加载提示
       }
 
       // 重置标志
@@ -124,8 +124,8 @@ export const useChatStore = defineStore('chat', {
 
         requestAnimationFrame(() => {
           // 收到第一个回复块后，提示消失
-          if (currentMsg.modelSwitching) {
-            currentMsg.modelSwitching = false
+          if (currentMsg.modelLoading) {
+            currentMsg.modelLoading = false
           }
           currentMsg.blocks = res.blocks
           currentMsg.thinking = res.thinking
@@ -153,7 +153,7 @@ export const useChatStore = defineStore('chat', {
       } finally {
         parser.end()
         currentMsg.streaming = false
-        currentMsg.modelSwitching = false // 确保结束时提示消失
+        currentMsg.modelLoading = false // 确保结束时提示消失
         this.isStreaming = false
         this.abortController = null
       }
