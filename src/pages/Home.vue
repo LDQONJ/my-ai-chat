@@ -4,6 +4,8 @@
   <div
     class="app"
     :class="{ 'sidebar-hidden': !store.sidebarVisible, 'is-mobile': isMobile }"
+    @touchstart="handleTouchStart"
+    @touchend="handleTouchEnd"
   >
     <div class="top-mask" />
     <div
@@ -40,9 +42,22 @@
         />
       </button>
     </div>
-    <!-- 主题切换 -->
+    <!-- 主题切换和设置 -->
     <div class="top-right-actions">
       <ThemeToggle />
+      <template v-if="!store.sidebarVisible">
+        <span class="action-divider" />
+        <button
+          class="action-btn"
+          title="设置"
+          @click="goToSettings"
+        >
+          <Icon
+            :icon-class="'icon-settings'"
+            :font-size="16"
+          />
+        </button>
+      </template>
     </div>
     <!-- 移动端侧边栏展开时的遮罩 -->
     <div
@@ -76,7 +91,17 @@
 </template>
 
 <script setup>
-import { ref, watch, nextTick, computed, onMounted, onUnmounted } from 'vue'
+import {
+  ref,
+  watch,
+  nextTick,
+  computed,
+  onMounted,
+  onUnmounted,
+  onActivated,
+  onDeactivated,
+} from 'vue'
+import { useRouter } from 'vue-router'
 import { useChatStore } from '@/store/chat'
 import { useUserStore } from '@/store/user'
 import { userApi } from '@/api/user'
@@ -87,8 +112,13 @@ import InputBox from '@/components/InputBox.vue'
 import Icon from '@/components/common/Icon.vue'
 import ThemeToggle from '@/components/ThemeToggle.vue'
 
+defineOptions({
+  name: 'Home',
+})
+
 const store = useChatStore()
 const userStore = useUserStore()
+const router = useRouter()
 const messages = computed(() => store.messages)
 const currentChatTitle = computed(() => {
   const chat = store.chatList.find(c => c.id === store.activeId)
@@ -99,6 +129,48 @@ const inputContainerRef = ref()
 const footerRef = ref()
 const isAtBottom = ref(true)
 const isMobile = ref(false)
+const touchStartX = ref(0)
+const touchStartY = ref(0)
+const savedMainScrollTop = ref(0)
+
+const handleTouchStart = (e) => {
+  if (!isMobile.value) return
+  touchStartX.value = e.touches[0].clientX
+  touchStartY.value = e.touches[0].clientY
+}
+
+const handleTouchEnd = (e) => {
+  if (!isMobile.value) return
+
+  const touchEndX = e.changedTouches[0].clientX
+  const touchEndY = e.changedTouches[0].clientY
+
+  const deltaX = touchEndX - touchStartX.value
+  const deltaY = Math.abs(touchEndY - touchStartY.value)
+
+  // 确保是水平滑动（垂直位移小于 300px）
+  if (deltaY < 300) {
+    if (!store.sidebarVisible) {
+      if (deltaX > 100) {
+        // 右滑打开侧边栏
+        store.setSidebarVisible(true)
+      } else if (deltaX < -100) {
+        // 左滑进入设置
+        goToSettings()
+      }
+    } else if (store.sidebarVisible && deltaX < -100) {
+      // 侧边栏展开时左滑收回
+      store.setSidebarVisible(false)
+    }
+  }
+}
+
+const goToSettings = () => {
+  if (mainRef.value) {
+    savedMainScrollTop.value = mainRef.value.scrollTop
+  }
+  router.push('/settings')
+}
 
 // 页面加载时刷新用户信息
 const refreshUserInfo = async () => {
@@ -291,6 +363,19 @@ onUnmounted(() => {
   }
 })
 
+onDeactivated(() => {
+  if (mainRef.value) {
+    savedMainScrollTop.value = mainRef.value.scrollTop
+  }
+})
+
+onActivated(async () => {
+  await nextTick()
+  if (mainRef.value) {
+    mainRef.value.scrollTop = savedMainScrollTop.value
+  }
+})
+
 // 检测滚动位置
 const handleScroll = () => {
   if (!mainRef.value) return
@@ -323,7 +408,6 @@ watch(
   padding: 0;
   position: relative;
   transition:
-    transform 0.3s ease,
     padding 0.3s ease,
     width 0.3s ease;
   overflow: hidden;
@@ -337,8 +421,8 @@ watch(
 .top-title-container {
   position: fixed;
   top: 15px;
-  left: calc(var(--sidebar-width) + 80px);
-  right: 80px;
+  left: calc(var(--sidebar-width) + 120px);
+  right: 120px;
   height: 35px;
   display: flex;
   justify-content: center;
@@ -354,11 +438,12 @@ watch(
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .app.is-mobile .top-title-container {
-  left: 70px;
-  right: 70px;
+  left: 95px;
+  right: 95px;
   justify-content: center;
 }
 
@@ -414,13 +499,13 @@ watch(
   top: 15px;
   right: 20px;
   height: 35px;
-  width: 35px;
+  padding: 0 4px;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 18px;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
+  gap: 2px;
   z-index: 101;
   transition: all 0.3s ease;
 }
@@ -496,7 +581,7 @@ watch(
 }
 
 .app.is-mobile .input-container,
-.app.is-mobile .footer {
+.app.is-mobile .footer-container {
   left: 0;
 }
 
@@ -525,8 +610,6 @@ watch(
   /* 预留滚动条位置，防止内容中心偏移 */
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
-  transition: scrollbar-color 0.3s ease;
-  scroll-behavior: smooth;
   transition: all 0.3s ease;
 }
 

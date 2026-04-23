@@ -1,5 +1,9 @@
 <template>
-  <div class="settings-page">
+  <div
+    class="settings-page"
+    @touchstart="handleTouchStart"
+    @touchend="handleTouchEnd"
+  >
     <div class="settings-header">
       <button
         class="back-btn"
@@ -112,36 +116,33 @@
         <h3>模型设置</h3>
         <br />
         <div class="model-selection">
-          <div
-            v-if="loadingModels"
-            class="loading"
+          <el-select
+            :model-value="currentModelId"
+            class="model-select"
+            :placeholder="loadingModels ? '加载中...' : '请选择模型'"
+            :loading="loadingModels"
+            :disabled="loadingModels"
+            @change="changeModel"
           >
-            加载中...
-          </div>
-          <div
-            v-else
-            class="model-list"
-          >
-            <div
+            <el-option
               v-for="model in models"
               :key="model.id"
-              class="model-item"
-              :class="{ active: currentModelId === model.id }"
-              @click="changeModel(model.id)"
+              :label="model.name"
+              :value="model.id"
             >
-              <div class="model-info">
-                <span class="model-name">{{ model.name }}</span>
+              <div class="model-option-content">
+                <div class="model-option-header">
+                  <span class="model-name">{{ model.name }}</span>
+                  <Icon
+                    v-if="currentModelId === model.id"
+                    icon-class="icon-success"
+                    :font-size="14"
+                  />
+                </div>
                 <span class="model-desc">{{ model.description }}</span>
               </div>
-              <div class="model-radio">
-                <Icon
-                  v-if="currentModelId === model.id"
-                  icon-class="icon-success"
-                  :font-size="16"
-                />
-              </div>
-            </div>
-          </div>
+            </el-option>
+          </el-select>
         </div>
       </section>
 
@@ -256,7 +257,11 @@ import { userApi } from '@/api/user'
 import { fileApi } from '@/api/file'
 import { promptApi } from '@/api/prompt'
 import Icon from '@/components/common/Icon.vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage, ElMessageBox, ElSelect, ElOption } from 'element-plus'
+
+defineOptions({
+  name: 'Settings',
+})
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -266,6 +271,27 @@ const models = ref([])
 const currentModelId = ref('')
 const loadingModels = ref(false)
 const fileInput = ref(null)
+
+const touchStartX = ref(0)
+const touchStartY = ref(0)
+
+const handleTouchStart = e => {
+  touchStartX.value = e.touches[0].clientX
+  touchStartY.value = e.touches[0].clientY
+}
+
+const handleTouchEnd = e => {
+  const touchEndX = e.changedTouches[0].clientX
+  const touchEndY = e.changedTouches[0].clientY
+
+  const deltaX = touchEndX - touchStartX.value
+  const deltaY = Math.abs(touchEndY - touchStartY.value)
+
+  // 确保是水平滑动（垂直位移小于 100px，且右滑位移大于 100px）
+  if (deltaY < 300 && deltaX > 100) {
+    router.back()
+  }
+}
 
 const isEditingPrompt = ref(false)
 const savingPrompt = ref(false)
@@ -738,51 +764,95 @@ onMounted(() => {
   min-height: 40px;
 }
 
-.model-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+.model-select {
+  width: 100%;
 }
 
-.model-item {
-  display: flex;
-  align-items: center;
-  padding: 16px;
-  background-color: var(--bg-card);
+:deep(.el-select__wrapper) {
+  background-color: var(--bg-card) !important;
+  box-shadow: 0 0 0 1px var(--border) inset !important;
   border-radius: 12px;
-  cursor: pointer;
+  padding: 8px 16px;
+  min-height: 48px;
   transition: all 0.2s;
-  border: 2px solid transparent;
 }
 
-.model-item:hover {
-  background-color: var(--bg-hover);
+:deep(.el-select__wrapper:hover) {
+  box-shadow: 0 0 0 1px var(--primary) inset !important;
 }
 
-.model-item.active {
-  border-color: var(--primary);
-  background-color: var(--bg-active);
+:deep(.el-select__wrapper.is-focused) {
+  box-shadow: 0 0 0 1px var(--primary) inset !important;
 }
 
-.model-info {
-  flex: 1;
+:deep(.el-select__placeholder) {
+  color: var(--text-sub) !important;
+}
+
+:deep(.el-select__selection) {
+  color: var(--text-main) !important;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.model-option-content {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
+  padding: 4px 0;
+  width: 100%;
+}
+
+.model-option-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .model-name {
   font-weight: 600;
-  font-size: 15px;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--text-main);
 }
 
 .model-desc {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-sub);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.model-radio {
-  color: var(--primary);
+/* 覆盖 Element Plus 的下拉菜单样式 */
+:deep(.el-select__popper) {
+  background-color: var(--bg-card) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+:deep(.el-select-dropdown__item) {
+  height: auto !important;
+  padding: 8px 16px !important;
+}
+
+:deep(.el-select-dropdown__item.selected) {
+  background-color: var(--bg-active) !important;
+}
+
+:deep(.el-select-dropdown__item.selected .model-name) {
+  color: var(--primary) !important;
+}
+
+:deep(.el-select-dropdown__item.hover) {
+  background-color: var(--bg-hover) !important;
+}
+
+:deep(.el-popper__arrow::before) {
+  background-color: var(--bg-card) !important;
+  border: 1px solid var(--border) !important;
 }
 
 .logout-section {

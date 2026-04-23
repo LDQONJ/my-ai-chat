@@ -24,7 +24,6 @@ const messages = computed(() => store.messages)
   scroll-padding-bottom: calc(
     var(--input-container-height) + var(--footer-height) - 65px
   );
-  scroll-behavior: smooth;
   max-width: 800px;
   width: 100%;
 }
