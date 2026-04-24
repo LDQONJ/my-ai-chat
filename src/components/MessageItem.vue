@@ -7,7 +7,7 @@
           v-if="message.modelLoading"
           class="model-loading-hint"
         >
-          <div class="loading-spinner"></div>
+          <div class="loading-spinner" />
           <span>模型加载中，请稍后...</span>
         </div>
 
@@ -336,10 +336,9 @@ const handleMarkdownClick = event => {
 /* 思考部分样式 */
 .thinking-box {
   margin-bottom: 12px;
-  border-left: 2px solid #374151;
+  border-left: 2px solid var(--bg-active);
   padding-left: 12px;
   background: rgba(255, 255, 255, 0.02);
-  border-radius: 4px;
 }
 
 .thinking-header {
@@ -370,7 +369,7 @@ const handleMarkdownClick = event => {
   color: #64748b;
   font-size: var(--font-size-thinking);
   font-style: italic;
-  padding: 8px 0;
+  padding: 8px 16px 8px 0px;
   line-height: var(--line-height-thinking);
 }
 

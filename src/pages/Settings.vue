@@ -9,26 +9,23 @@
         class="back-btn"
         @click="router.back()"
       >
-        <Icon
-          icon-class="icon-back"
-          :font-size="20"
-        />
+        <Icon icon-class="icon-back" />
       </button>
-      <h2>设置</h2>
+      <div class="title">设置</div>
     </div>
 
     <div class="settings-content">
       <!-- 用户信息 -->
       <section class="settings-section">
         <div class="section-header">
-          <h3>用户信息</h3>
+          <div class="section-title">用户信息</div>
           <button
             v-if="!isEditing"
             class="edit-btn"
             @click="startEditing"
           >
             <Icon
-              icon-class="icon-edit"
+              icon-class="icon-edit1"
               :font-size="14"
             />
             <span>修改资料</span>
@@ -113,8 +110,9 @@
 
       <!-- 模型设置 -->
       <section class="settings-section">
-        <h3>模型设置</h3>
-        <br />
+        <div class="section-header">
+          <div class="section-title">模型设置</div>
+        </div>
         <div class="model-selection">
           <el-select
             :model-value="loadingModels ? '' : chatStore.currentModelId"
@@ -150,7 +148,7 @@
       <section class="settings-section">
         <div class="section-header">
           <div class="title-with-switch">
-            <h3>全局提示词</h3>
+            <div class="section-title">全局提示词</div>
             <div
               class="switch-container"
               @click="togglePromptEnabled"
@@ -159,7 +157,7 @@
                 class="switch"
                 :class="{ active: chatStore.isPromptEnabled }"
               >
-                <div class="switch-handle"></div>
+                <div class="switch-handle" />
               </div>
               <span class="switch-label">{{
                 chatStore.isPromptEnabled ? '已开启' : '已关闭'
@@ -172,7 +170,7 @@
             @click="startEditingPrompt"
           >
             <Icon
-              icon-class="icon-edit"
+              icon-class="icon-edit1"
               :font-size="14"
             />
             <span>修改</span>
@@ -204,7 +202,7 @@
               v-model="editPromptForm.persona"
               placeholder="例如：你是一个专业的技术顾问..."
               rows="3"
-            ></textarea>
+            />
             <div
               v-else
               class="prompt-text"
@@ -219,7 +217,7 @@
               v-model="editPromptForm.rules"
               placeholder="例如：使用简洁的语言回复..."
               rows="5"
-            ></textarea>
+            />
             <div
               v-else
               class="prompt-text"
@@ -488,9 +486,9 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .settings-page {
-  height: 100%;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   background-color: var(--bg-main);
@@ -503,7 +501,17 @@ onMounted(() => {
   align-items: center;
   padding: 0 20px;
   border-bottom: 1px solid var(--border);
-  gap: 16px;
+
+  .icon-back {
+    font-size: 20px;
+  }
+
+  .title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-main);
+    margin-left: 8px;
+  }
 }
 
 .back-btn {
@@ -526,14 +534,24 @@ onMounted(() => {
 .settings-content {
   flex: 1;
   overflow-y: auto;
-  padding: 24px;
-  max-width: 800px;
+  padding: 12px 16px;
   margin: 0 auto;
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .settings-section {
+  width: 100%;
+  max-width: 800px;
   margin-bottom: 32px;
+
+  .section-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text-main);
+  }
 }
 
 .settings-section h3 {
@@ -547,7 +565,8 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  height: 35px;
+  margin-bottom: 12px;
 }
 
 .title-with-switch {
@@ -711,7 +730,7 @@ onMounted(() => {
 }
 
 .field label {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--text-sub);
 }
 
@@ -722,11 +741,11 @@ onMounted(() => {
 
 .field input,
 .field textarea {
-  background: var(--bg-main);
+  background-color: var(--bg-card);
   border: 1px solid var(--border);
   color: var(--text-main);
   padding: 8px 12px;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 14px;
   outline: none;
 }
@@ -744,8 +763,6 @@ onMounted(() => {
 }
 
 .prompt-card {
-  padding: 24px;
-  background-color: var(--bg-card);
   border-radius: 12px;
   display: flex;
   flex-direction: column;
@@ -754,14 +771,14 @@ onMounted(() => {
 
 .prompt-text {
   font-size: 14px;
-  color: var(--text-main);
+  color: var(--text-sub);
   white-space: pre-wrap;
-  background: var(--bg-main);
-  padding: 12px;
+  padding: 11px;
   border-radius: 8px;
   border: 1px solid var(--border);
   line-height: 1.5;
-  min-height: 40px;
+  min-height: 44px;
+  background-color: var(--bg-card);
 }
 
 .model-select {
@@ -771,9 +788,9 @@ onMounted(() => {
 :deep(.el-select__wrapper) {
   background-color: var(--bg-card) !important;
   box-shadow: 0 0 0 1px var(--border) inset !important;
-  border-radius: 12px;
-  padding: 8px 16px;
-  min-height: 48px;
+  border-radius: 8px;
+  padding: 8px 12px;
+  min-height: 44px;
   transition: all 0.2s;
 }
 
@@ -791,7 +808,7 @@ onMounted(() => {
 
 :deep(.el-select__selection) {
   color: var(--text-main) !important;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 500;
 }
 
@@ -878,5 +895,27 @@ onMounted(() => {
 
 .logout-btn:hover {
   background-color: #ff4d4f33;
+}
+
+// 移动端适配
+@media screen and (max-width: 768px) {
+  .settings-header {
+    height: 50px;
+    padding: 0 12px;
+
+    .title {
+      font-size: 16px;
+      color: var(--text-main);
+    }
+    .icon-back {
+      font-size: 16px;
+    }
+  }
+
+  .settings-section {
+    .section-title {
+      font-size: 15px;
+    }
+  }
 }
 </style>

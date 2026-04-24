@@ -76,8 +76,8 @@
                 @click="startRename(chat)"
               >
                 <Icon
-                  :icon-class="'icon-edit'"
-                  :font-size="12"
+                  :icon-class="'icon-edit1'"
+                  :font-size="14"
                 />
                 <span>重命名</span>
               </div>
@@ -87,7 +87,7 @@
               >
                 <Icon
                   :icon-class="'icon-prompt'"
-                  :font-size="12"
+                  :font-size="14"
                 />
                 <span>提示词</span>
               </div>
@@ -97,7 +97,7 @@
               >
                 <Icon
                   :icon-class="'icon-delete'"
-                  :font-size="12"
+                  :font-size="14"
                 />
                 <span>删除</span>
               </div>
@@ -585,7 +585,7 @@ onMounted(() => {
 }
 
 .chat-item.active {
-  background: var(--bg-hover);
+  background: var(--bg-active);
 }
 
 .chat-title {

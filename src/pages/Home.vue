@@ -628,31 +628,9 @@ watch(
   flex-direction: column;
   align-items: center;
   padding: 0 12px 0 20px;
-  /* 统一左右内边距 */
   overflow-y: auto;
   scrollbar-gutter: stable;
-  /* 预留滚动条位置，防止内容中心偏移 */
-  scrollbar-width: thin;
-  scrollbar-color: transparent transparent;
   transition: all 0.3s ease;
-}
-
-.main:hover {
-  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
-}
-
-/* Webkit 滚动条 */
-.main::-webkit-scrollbar {
-  width: 6px;
-}
-
-.main::-webkit-scrollbar-thumb {
-  background: transparent;
-  border-radius: 3px;
-}
-
-.main:hover::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
 }
 
 .input-container {
