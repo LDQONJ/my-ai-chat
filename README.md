@@ -2,6 +2,8 @@
 
 一个基于Vue 3 + Vite构建的现代化AI聊天界面应用，提供简洁优雅的用户体验。
 
+后端项目：[my-ai-server](https://github.com/LDQONJ/my-ai-server)
+
 ## ✨ 功能特性
 
 - 💬 实时AI对话界面
