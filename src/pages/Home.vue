@@ -131,16 +131,28 @@ const isAtBottom = ref(true)
 const isMobile = ref(false)
 const touchStartX = ref(0)
 const touchStartY = ref(0)
+const shouldIgnoreGesture = ref(false)
 const savedMainScrollTop = ref(0)
 
 const handleTouchStart = e => {
   if (!isMobile.value) return
+
+  // 检查是否在代码区域或表格区域滑动
+  const target = e.target
+  const isCodeOrTable = !!target.closest('pre, code, table, .code-wrapper')
+
+  if (isCodeOrTable) {
+    shouldIgnoreGesture.value = true
+    return
+  }
+
+  shouldIgnoreGesture.value = false
   touchStartX.value = e.touches[0].clientX
   touchStartY.value = e.touches[0].clientY
 }
 
 const handleTouchEnd = e => {
-  if (!isMobile.value) return
+  if (!isMobile.value || shouldIgnoreGesture.value) return
 
   const touchEndX = e.changedTouches[0].clientX
   const touchEndY = e.changedTouches[0].clientY
