@@ -470,7 +470,7 @@ watch(
   position: fixed;
   top: 15px;
   left: 20px;
-  height: 35px;
+  height: 36px;
   padding: 0 4px;
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -511,8 +511,8 @@ watch(
   position: fixed;
   top: 15px;
   right: 20px;
-  height: 35px;
-  padding: 0 4px;
+  height: 36px;
+  padding: 0 3px;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 18px;

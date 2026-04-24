@@ -9,6 +9,7 @@
   --text-main-dark: #e5e7eb;
   --text-sub-dark: #94a3b8;
   --border-dark: rgba(255, 255, 255, 0.05);
+  --add-chat-bg-dark: #43454a;
 
   /* 亮色模式 */
   --bg-main-light: #ffffff;
@@ -19,6 +20,7 @@
   --text-main-light: #1e293b;
   --text-sub-light: #64748b;
   --border-light: rgba(0, 0, 0, 0.1);
+  --add-chat-bg-light: #fff;
 
   --code-bg-dark: #0b1220;
   --code-header-bg-dark: #020617;
@@ -29,7 +31,7 @@
   --code-inline-bg-light: rgba(2, 6, 23, 0.06);
 
   /* 通用变量（根据主题动态切换） */
-  --bg-main: var(--bg-main-dark);
+  /* --bg-main: var(--bg-main-dark);
   --bg-sidebar: var(--bg-sidebar-dark);
   --bg-hover: var(--bg-hover-dark);
   --bg-active: var(--bg-active-dark);
@@ -39,7 +41,7 @@
   --border: var(--border-dark);
   --code-bg: var(--code-bg-dark);
   --code-header-bg: var(--code-header-bg-dark);
-  --code-inline-bg: var(--code-inline-bg-dark);
+  --code-inline-bg: var(--code-inline-bg-dark); */
 
   --primary: hsl(221, 83%, 53%);
 
@@ -66,6 +68,7 @@
   --code-bg: var(--code-bg-light);
   --code-header-bg: var(--code-header-bg-light);
   --code-inline-bg: var(--code-inline-bg-light);
+  --add-chat-bg: var(--add-chat-bg-light);
   color-scheme: light;
 }
 
@@ -82,6 +85,7 @@
   --code-bg: var(--code-bg-dark);
   --code-header-bg: var(--code-header-bg-dark);
   --code-inline-bg: var(--code-inline-bg-dark);
+  --add-chat-bg: var(--add-chat-bg-dark);
   color-scheme: dark;
 }
 

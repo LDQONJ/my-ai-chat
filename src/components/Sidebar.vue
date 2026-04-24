@@ -502,24 +502,26 @@ onMounted(() => {
 
 .new-chat {
   width: 100%;
-  padding: 10px;
+  padding: 13px;
   margin-bottom: 20px;
   display: flex;
   align-items: center;
   gap: 8px;
-  background: var(--bg-hover);
+  background: var(--add-chat-bg);
   /* 添加长方形背景 */
   border-radius: 25px;
   /* 左右两边半圆效果 */
   transition: all 0.3s ease;
   cursor: pointer;
   flex-shrink: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .new-chat:hover {
-  background: var(--bg-active);
+  /* background: var(--bg-active); */
   /* 悬停时背景色变化 */
-  transform: scale(1.02);
+  /* transform: scale(1.02); */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
 }
 
 .new-chat-icon {
@@ -532,7 +534,7 @@ onMounted(() => {
 }
 
 .new-chat-text {
-  font-size: var(--font-size-main);
+  font-size: 15px;
   height: 16px;
   line-height: 16px;
   display: flex;
