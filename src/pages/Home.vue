@@ -6,17 +6,44 @@
     :class="{ 'sidebar-hidden': !store.sidebarVisible, 'is-mobile': isMobile }"
   >
     <div class="top-mask" />
-    <button
-      v-if="!store.sidebarVisible"
-      class="expand-btn"
-      title="展开侧边栏"
-      @click="toggleSidebar"
+    <div
+      v-if="messages.length > 0"
+      class="top-title-container"
     >
-      <Icon
-        :icon-class="'icon-sidebar'"
-        :font-size="16"
-      />
-    </button>
+      <div class="top-title">
+        {{ currentChatTitle }}
+      </div>
+    </div>
+    <div
+      v-if="!store.sidebarVisible"
+      class="top-left-actions"
+    >
+      <button
+        class="action-btn"
+        title="展开侧边栏"
+        @click="toggleSidebar"
+      >
+        <Icon
+          :icon-class="'icon-sidebar'"
+          :font-size="16"
+        />
+      </button>
+      <span class="action-divider" />
+      <button
+        class="action-btn"
+        title="新对话"
+        @click="createChatFromCollapsed"
+      >
+        <Icon
+          :icon-class="'icon-chat_add'"
+          :font-size="16"
+        />
+      </button>
+    </div>
+    <!-- 主题切换 -->
+    <div class="top-right-actions">
+      <ThemeToggle />
+    </div>
     <!-- 移动端侧边栏展开时的遮罩 -->
     <div
       v-if="isMobile && store.sidebarVisible"
@@ -37,8 +64,13 @@
     >
       <InputBox />
     </div>
-    <div class="footer">
-      <span>内容由 AI 生成，请仔细甄别</span>
+    <div class="footer-container">
+      <div
+        ref="footerRef"
+        class="footer"
+      >
+        <span>内容由 AI 生成，请仔细甄别</span>
+      </div>
     </div>
   </div>
 </template>
@@ -47,17 +79,24 @@
 import { ref, watch, nextTick, computed, onMounted, onUnmounted } from 'vue'
 import { useChatStore } from '@/store/chat'
 import { useUserStore } from '@/store/user'
-import { userApi, sessionApi } from '@/api/test'
+import { userApi } from '@/api/user'
+import { sessionApi } from '@/api/session'
 import Sidebar from '@/components/Sidebar.vue'
 import ChatWindow from '@/components/ChatWindow.vue'
 import InputBox from '@/components/InputBox.vue'
 import Icon from '@/components/common/Icon.vue'
+import ThemeToggle from '@/components/ThemeToggle.vue'
 
 const store = useChatStore()
 const userStore = useUserStore()
 const messages = computed(() => store.messages)
+const currentChatTitle = computed(() => {
+  const chat = store.chatList.find(c => c.id === store.activeId)
+  return chat ? chat.title : '新对话'
+})
 const mainRef = ref()
 const inputContainerRef = ref()
+const footerRef = ref()
 const isAtBottom = ref(true)
 const isMobile = ref(false)
 
@@ -117,6 +156,26 @@ const toggleSidebar = () => {
   store.setSidebarVisible(!store.sidebarVisible)
 }
 
+const createChatFromCollapsed = async () => {
+  try {
+    const newSessionId = await sessionApi.create()
+    if (newSessionId) {
+      store.messagesMap[newSessionId] = []
+      store.setActive(newSessionId)
+      localStorage.setItem('sessionId', newSessionId)
+      localStorage.setItem('isNewSession', 'true')
+      sessionStorage.setItem('is_session_active', 'true')
+      return
+    }
+  } catch (error) {
+    console.error('创建新会话失败:', error)
+  }
+
+  store.createChat()
+  localStorage.setItem('isNewSession', 'true')
+  sessionStorage.setItem('is_session_active', 'true')
+}
+
 // 监听消息发送，如果是移动端则自动收起侧边栏
 watch(
   () => store.isStreaming,
@@ -128,6 +187,7 @@ watch(
 )
 
 let resizeObserver
+let footerResizeObserver
 
 onMounted(() => {
   checkWidth()
@@ -164,12 +224,49 @@ onMounted(() => {
     })
     resizeObserver.observe(inputContainerRef.value)
   }
+
+  if (footerRef.value) {
+    footerResizeObserver = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        const rect = entry.target.getBoundingClientRect()
+        document.documentElement.style.setProperty(
+          '--footer-height',
+          `${rect.height}px`,
+        )
+      }
+    })
+    footerResizeObserver.observe(footerRef.value)
+  }
+
+  if (window.visualViewport) {
+    const handleViewportChange = () => {
+      if (!mainRef.value) return
+      const atBottomNow =
+        mainRef.value.scrollHeight -
+          mainRef.value.scrollTop -
+          mainRef.value.clientHeight <
+        80
+
+      if (!atBottomNow) return
+
+      requestAnimationFrame(() => {
+        if (!mainRef.value) return
+        mainRef.value.scrollTop = mainRef.value.scrollHeight
+      })
+    }
+
+    window.visualViewport.addEventListener('resize', handleViewportChange)
+    window.visualViewport.addEventListener('scroll', handleViewportChange)
+  }
 })
 
 onUnmounted(() => {
   window.removeEventListener('resize', checkWidth)
   if (resizeObserver) {
     resizeObserver.disconnect()
+  }
+  if (footerResizeObserver) {
+    footerResizeObserver.disconnect()
   }
 })
 
@@ -199,12 +296,15 @@ watch(
   display: flex;
   height: 100vh;
   height: 100dvh;
-  background: #0f172a;
-  color: #fff;
+  background: var(--bg-main);
+  color: var(--text-main);
   margin: 0;
   padding: 0;
   position: relative;
-  transition: all 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    padding 0.3s ease,
+    width 0.3s ease;
   overflow: hidden;
 }
 
@@ -212,30 +312,96 @@ watch(
   --sidebar-width: 0px;
 }
 
-/* 展开按钮样式 */
-.expand-btn {
+/* 顶部标题样式 */
+.top-title-container {
   position: fixed;
-  top: 20px;
+  top: 15px;
+  left: calc(var(--sidebar-width) + 80px);
+  right: 80px;
+  height: 35px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 101;
+  transition: all 0.3s ease;
+}
+
+.top-title {
+  font-size: calc(var(--font-size-main) + 2px);
+  font-weight: 500;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app.is-mobile .top-title-container {
+  left: 70px;
+  right: 70px;
+  justify-content: center;
+}
+
+.app.is-mobile .top-title {
+  font-size: calc(var(--font-size-main) - 2px);
+  text-align: center;
+}
+
+/* 侧边栏收起时左上角组合按钮 */
+.top-left-actions {
+  position: fixed;
+  top: 15px;
   left: 20px;
-  width: 40px;
-  height: 40px;
+  height: 35px;
+  padding: 0 4px;
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 20px;
+  border-radius: 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  z-index: 101;
+  transition: all 0.3s ease;
+}
+
+.action-btn {
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: transparent;
+  border-radius: 15px;
   color: var(--text-sub);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 101;
-  /* 高于 top-mask (100) */
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
 }
 
-.expand-btn:hover {
-  background: var(--bg-hover);
+.action-btn:hover {
+  background: transparent;
   color: var(--text-main);
-  transform: translateX(2px);
+}
+
+.action-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--border);
+}
+
+.top-right-actions {
+  position: fixed;
+  top: 15px;
+  right: 20px;
+  height: 35px;
+  width: 35px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 101;
+  transition: all 0.3s ease;
 }
 
 /* 移动端侧边栏遮罩 */
@@ -267,12 +433,18 @@ watch(
   top: 0;
   left: var(--sidebar-width);
   right: 0;
-  height: 100px;
-  background: linear-gradient(to bottom, #0f172a 60%, transparent 100%);
+  height: 70px;
+  background-color: var(--bg-main);
+  -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
   z-index: 100;
   /* 确保在所有内容之上 */
   pointer-events: none;
-  transition: all 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    left 0.3s ease,
+    right 0.3s ease,
+    width 0.3s ease;
 }
 
 /* 移动端布局适配 */
@@ -285,7 +457,7 @@ watch(
   /* 极高层级，确保在遮罩之上 */
   width: 280px !important;
   transform: translateX(-100%) !important;
-  background: #1e293b !important;
+  background: var(--bg-sidebar) !important;
   box-shadow: 4px 0 15px rgba(0, 0, 0, 0.5) !important;
   transition: transform 0.3s ease !important;
 }
@@ -307,12 +479,25 @@ watch(
   left: 0;
 }
 
+.app.is-mobile .main {
+  padding: 4px 4px 8px;
+}
+
+.app.is-mobile .input-container {
+  padding: 12px 4px 4px;
+}
+
+.app.is-mobile .footer {
+  right: 4px;
+  padding: 12px 4px 4px;
+}
+
 .main {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0 20px;
+  padding: 0 12px 0 20px;
   /* 统一左右内边距 */
   overflow-y: auto;
   scrollbar-gutter: stable;
@@ -321,6 +506,7 @@ watch(
   scrollbar-color: transparent transparent;
   transition: scrollbar-color 0.3s ease;
   scroll-behavior: smooth;
+  transition: all 0.3s ease;
 }
 
 .main:hover {
@@ -348,27 +534,43 @@ watch(
   right: 0;
   display: flex;
   justify-content: center;
+
   background: transparent;
-  padding: 20px;
-  padding-right: calc(20px + 6px);
+  padding: 16px 20px 4px;
+  /* padding-right: calc(20px + 6px); */
   /* 20px 基础 padding + 6px 滚动条预留宽度 */
   z-index: 10;
   transition: all 0.3s ease;
 }
 
-.footer {
+.footer-container {
   position: fixed;
   bottom: 0;
   left: var(--sidebar-width);
   right: 0;
-  text-align: center;
-  padding: 10px 0;
-  padding-right: 6px;
+  display: flex;
+  justify-content: center;
+  padding: 0 20px;
   /* 同步滚动条宽度 */
-  background: #0f172a;
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 12px;
+  background: transparent;
   z-index: 5;
   transition: all 0.3s ease;
+}
+
+.footer {
+  right: 8px;
+  max-width: 800px;
+  width: 100%;
+  height: 100%;
+  padding: 4px 0;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  padding-right: 6px;
+  /* 同步滚动条宽度 */
+  background: var(--bg-main);
+  color: var(--text-sub);
+  font-size: 10px;
+  line-height: 1;
 }
 </style>

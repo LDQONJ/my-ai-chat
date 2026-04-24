@@ -5,10 +5,10 @@
         ref="textareaRef"
         v-model="text"
         placeholder="给 LDQ's AI 发送消息"
-        rows="3"
+        rows="2"
         @focus="focus = true"
         @blur="focus = false"
-        @keyup.enter="send"
+        @keydown.enter="handleEnter"
       />
 
       <!-- 深度思考按钮 -->
@@ -86,15 +86,30 @@ const send = () => {
   }
 }
 
-const handleShiftEnter = event => {
-  // Shift+Enter 换行
-  const textarea = event.target
-  const start = textarea.selectionStart
-  const end = textarea.selectionEnd
-  text.value = text.value.substring(0, start) + '\n' + text.value.substring(end)
+const handleEnter = event => {
+  if (event.ctrlKey) {
+    // Ctrl + Enter 换行
+    event.preventDefault() // 阻止默认行为（如表单提交）
+    const textarea = textareaRef.value
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const value = textarea.value
+    text.value = value.substring(0, start) + '\n' + value.substring(end)
+    nextTick(() => {
+      textarea.selectionStart = textarea.selectionEnd = start + 1
+      autoResize()
+    })
+  } else {
+    // Enter 发送
+    event.preventDefault()
+    send()
+  }
+}
+
+const handleShiftEnter = () => {
+  // Shift+Enter 换行现在由浏览器默认行为处理，这里只需要确保高度调整
   nextTick(() => {
-    textarea.selectionStart = textarea.selectionEnd = start + 1
-    autoResize(textarea)
+    autoResize()
   })
 }
 
@@ -129,9 +144,9 @@ const watchText = () => {
   align-items: flex-start;
   background: var(--bg-card);
   border-radius: 16px;
-  padding: 10px;
+  padding: 4px;
   border: 1px solid var(--border);
-  transition: all 0.2s;
+  transition: all 0.3s ease;
   max-width: 800px;
   position: relative;
   /* 为按钮定位提供参考 */
@@ -160,7 +175,7 @@ const watchText = () => {
   color: var(--text-sub);
   font-size: 13px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
 }
 
 .think-btn:hover {
@@ -184,7 +199,7 @@ textarea {
   /* 宽度占满 */
   background: transparent;
   border: none;
-  color: white;
+  color: var(--text-main);
   outline: none;
   resize: none;
   /* 禁用手动调整大小 */
@@ -196,11 +211,13 @@ textarea {
   font-family: inherit;
   font-size: 16px;
   overflow-y: auto;
-  padding-right: 50px;
-  padding-left: 7px;
-  padding-top: 7px;
-  padding-bottom: 7px;
-
+  padding: 8px;
+  hyphenate-limit-chars: 0 0 0;
+  hyphens: auto;
+  overflow-wrap: break-word;
+  text-align: justify;
+  text-justify: inter-ideograph;
+  text-align-last: left;
   /* 内容超出时显示滚动条 */
 }
 

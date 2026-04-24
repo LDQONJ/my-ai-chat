@@ -1,19 +1,161 @@
 /* styles.css */
 :root {
-  --bg-main: hsl(222, 47%, 11%);
-  --bg-sidebar: #22283a;
-  --bg-hover: #434851;
-  --bg-active: #3b3d3d;
-  --bg-card: #2a3346;
-  --primary: #2563eb;
-  --text-main: #e5e7eb;
-  --text-sub: #94a3b8;
-  --border: rgba(255, 255, 255, 0.05);
+  /* 暗色模式（默认） */
+  --bg-main-dark: hsl(222, 47%, 11%);
+  --bg-sidebar-dark: #22283a;
+  --bg-hover-dark: #434851;
+  --bg-active-dark: #3b3d3d;
+  --bg-card-dark: #2a3346;
+  --text-main-dark: #e5e7eb;
+  --text-sub-dark: #94a3b8;
+  --border-dark: rgba(255, 255, 255, 0.05);
+
+  /* 亮色模式 */
+  --bg-main-light: #ffffff;
+  --bg-sidebar-light: #f8fafc;
+  --bg-hover-light: #f1f5f9;
+  --bg-active-light: #e2e8f0;
+  --bg-card-light: #ffffff;
+  --text-main-light: #1e293b;
+  --text-sub-light: #64748b;
+  --border-light: rgba(0, 0, 0, 0.1);
+
+  --code-bg-dark: #0b1220;
+  --code-header-bg-dark: #020617;
+  --code-inline-bg-dark: rgba(255, 255, 255, 0.08);
+
+  --code-bg-light: #f8fafc;
+  --code-header-bg-light: #e2e8f0;
+  --code-inline-bg-light: rgba(2, 6, 23, 0.06);
+
+  /* 通用变量（根据主题动态切换） */
+  --bg-main: var(--bg-main-dark);
+  --bg-sidebar: var(--bg-sidebar-dark);
+  --bg-hover: var(--bg-hover-dark);
+  --bg-active: var(--bg-active-dark);
+  --bg-card: var(--bg-card-dark);
+  --text-main: var(--text-main-dark);
+  --text-sub: var(--text-sub-dark);
+  --border: var(--border-dark);
+  --code-bg: var(--code-bg-dark);
+  --code-header-bg: var(--code-header-bg-dark);
+  --code-inline-bg: var(--code-inline-bg-dark);
+
+  --primary: hsl(221, 83%, 53%);
+
+  --font-size-main: 16px;
+  --font-size-thinking: 13px;
+  --font-size-md: 12px;
+  --letter-spacing: 0.03em;
+  --line-height-main: 1.5;
+  --line-height-thinking: 1.4;
+  --font-family-text:
+    'JetBrains Mono', 'PingFang SC', -apple-system, BlinkMacSystemFont,
+    'Microsoft YaHei', sans-serif;
+  --font-family-mono:
+    'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
+  --bg-main: var(--bg-main-light);
+  --bg-sidebar: var(--bg-sidebar-light);
+  --bg-hover: var(--bg-hover-light);
+  --bg-active: var(--bg-active-light);
+  --bg-card: var(--bg-card-light);
+  --text-main: var(--text-main-light);
+  --text-sub: var(--text-sub-light);
+  --border: var(--border-light);
+  --code-bg: var(--code-bg-light);
+  --code-header-bg: var(--code-header-bg-light);
+  --code-inline-bg: var(--code-inline-bg-light);
+  color-scheme: light;
+}
+
+/* 暗色模式主题 */
+[data-theme='dark'] {
+  --bg-main: var(--bg-main-dark);
+  --bg-sidebar: var(--bg-sidebar-dark);
+  --bg-hover: var(--bg-hover-dark);
+  --bg-active: var(--bg-active-dark);
+  --bg-card: var(--bg-card-dark);
+  --text-main: var(--text-main-dark);
+  --text-sub: var(--text-sub-dark);
+  --border: var(--border-dark);
+  --code-bg: var(--code-bg-dark);
+  --code-header-bg: var(--code-header-bg-dark);
+  --code-inline-bg: var(--code-inline-bg-dark);
+  color-scheme: dark;
+}
+
+@font-face {
+  font-family: 'PingFang SC';
+  src: url('/fonts/苹方黑体-准-简.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('/fonts/JetBrainsMono-Medium.ttf') format('truetype');
+  unicode-range: U+0000-00FF, U+0100-024F, U+1E00-1EFF;
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+code,
+pre,
+kbd,
+samp {
+  font-family: var(--font-family-mono);
+  letter-spacing: var(--letter-spacing);
 }
 
 body {
   margin: 0;
   background: var(--bg-main);
   color: var(--text-main);
-  font-family: -apple-system, BlinkMacSystemFont;
+  font-family: var(--font-family-text);
+  letter-spacing: var(--letter-spacing);
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 主题切换圆形扩散动画 */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+  display: block;
+  outline: none;
+  /* 强制 GPU 加速 */
+  backface-visibility: hidden;
+  perspective: 1000px;
+  transform: translateZ(0);
+}
+
+/* 移除 root 默认背景，防止切换瞬间闪白或闪黑 */
+::view-transition {
+  background-color: transparent;
+}
+
+::view-transition-group(root) {
+  animation-duration: 0s;
+}
+
+/* 当切换到深色模式时，让新的（深色）在上面 */
+[data-theme='dark']::view-transition-old(root) {
+  z-index: 1;
+}
+[data-theme='dark']::view-transition-new(root) {
+  z-index: 9999;
+}
+
+/* 当切换到亮色模式时，让旧的（深色）在上面，然后缩小露出下面的亮色 */
+[data-theme='light']::view-transition-old(root) {
+  z-index: 9999;
+}
+[data-theme='light']::view-transition-new(root) {
+  z-index: 1;
 }

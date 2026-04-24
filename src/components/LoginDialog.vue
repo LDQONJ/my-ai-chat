@@ -33,12 +33,17 @@
               class="avatar-container"
               @click="triggerFileInput"
             >
+              <img
+                v-if="form.avatar"
+                :src="fullAvatarUrl"
+                alt="头像"
+              />
               <div
-                v-if="!form.avatar"
                 class="upload-mask"
+                :class="{ 'always-show': !form.avatar }"
               >
                 <span class="plus-icon">+</span>
-                <span>上传头像</span>
+                <span>{{ form.avatar ? '更换头像' : '上传头像' }}</span>
               </div>
               <input
                 ref="fileInput"
@@ -131,7 +136,9 @@
 
 <script setup>
 import { ref, reactive, computed } from 'vue'
-import { userApi, codeApi, fileApi } from '@/api/test'
+import { userApi } from '@/api/user'
+import { codeApi } from '@/api/code'
+import { fileApi } from '@/api/file'
 import { useUserStore } from '@/store/user'
 import { ElMessage } from 'element-plus'
 
@@ -389,6 +396,7 @@ const handleSubmit = async () => {
 }
 
 .avatar-container {
+  position: relative;
   width: 80px;
   height: 80px;
   border: 2px dashed var(--border);
@@ -430,8 +438,16 @@ const handleSubmit = async () => {
   transition: opacity 0.2s;
 }
 
+.upload-mask.always-show {
+  background: transparent;
+  color: var(--text-sub);
+  opacity: 1;
+}
+
 .avatar-container:hover .upload-mask {
   opacity: 1;
+  background: rgba(0, 0, 0, 0.4);
+  color: white;
 }
 
 .upload-placeholder {
