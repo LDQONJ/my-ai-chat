@@ -252,6 +252,15 @@ const toggleSidebar = () => {
 }
 
 const createChatFromCollapsed = async () => {
+  // 如果有新会话且没有消息，不创建新会话
+  if (
+    store.newSessionId &&
+    store.messagesMap[store.newSessionId].length === 0
+  ) {
+    store.setActive(store.newSessionId)
+    return
+  }
+
   try {
     const newSessionId = await sessionApi.create()
     if (newSessionId) {
@@ -409,7 +418,7 @@ watch(
 )
 </script>
 
-<style>
+<style lang="scss">
 .app {
   --sidebar-width: 260px;
   display: flex;
@@ -452,6 +461,7 @@ watch(
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
+  padding: 0 6px;
 }
 
 .app.is-mobile .top-title-container {
@@ -577,7 +587,6 @@ watch(
   width: 280px !important;
   transform: translateX(-100%) !important;
   background: var(--bg-sidebar) !important;
-  box-shadow: 4px 0 15px rgba(0, 0, 0, 0.5) !important;
   transition: transform 0.3s ease !important;
 }
 
@@ -589,26 +598,28 @@ watch(
   transform: translateX(0) !important;
 }
 
-.app.is-mobile .top-mask {
-  left: 0;
-}
+.app.is-mobile {
+  .top-mask {
+    left: 0;
+  }
 
-.app.is-mobile .input-container,
-.app.is-mobile .footer-container {
-  left: 0;
-}
+  .input-container,
+  .footer-container {
+    left: 0;
+  }
 
-.app.is-mobile .main {
-  padding: 4px 4px 8px;
-}
+  .main {
+    padding: 4px 4px 8px;
+  }
 
-.app.is-mobile .input-container {
-  padding: 12px 4px 4px;
-}
+  .input-container {
+    padding: 12px 16px 4px;
+  }
 
-.app.is-mobile .footer-container {
-  right: 4px;
-  padding: 0 4px 0;
+  .footer-container {
+    right: 4px;
+    padding: 0 4px 0;
+  }
 }
 
 .main {

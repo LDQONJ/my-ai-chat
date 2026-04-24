@@ -258,6 +258,8 @@ const handleUserClick = () => {
 }
 
 const select = async (id, isAuto = false) => {
+  // 点击聊天项时，关闭更多菜单
+  itemMenuVisibleId.value = null
   try {
     // 调用接口获取会话详情
     const sessionDetail = await sessionApi.queryById(id)
@@ -311,6 +313,15 @@ const select = async (id, isAuto = false) => {
   }
 }
 const createChat = async () => {
+  // 如果有新会话且没有消息，不创建新会话
+  if (
+    store.newSessionId &&
+    store.messagesMap[store.newSessionId].length === 0
+  ) {
+    store.setActive(store.newSessionId)
+    return
+  }
+
   try {
     // 调用session/create接口创建新会话
     const newSessionId = await sessionApi.create()
@@ -331,6 +342,7 @@ const createChat = async () => {
 
       // 设置为活跃会话
       store.setActive(newSessionId)
+      store.setNewSessionId(newSessionId)
 
       // 保存sessionId到本地存储
       localStorage.setItem('sessionId', newSessionId)
@@ -443,7 +455,7 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .sidebar {
   width: var(--sidebar-width);
   background: var(--bg-sidebar);
@@ -539,6 +551,7 @@ onMounted(() => {
   line-height: 16px;
   display: flex;
   align-items: center;
+  user-select: none;
 }
 
 .chat-list {
@@ -584,40 +597,39 @@ onMounted(() => {
 .chat-item-actions {
   display: flex;
   align-items: center;
-  opacity: 0;
-  transition: opacity 0.2s;
+
+  // 更多操作按钮
+  .item-more-btn {
+    background: none;
+    border: none;
+    color: var(--text-sub);
+    cursor: pointer;
+    padding: 2px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+  }
+
+  .item-more-btn:hover {
+    color: var(--text-main);
+  }
 }
 
-.chat-item:hover .chat-item-actions {
+.chat-item:hover .item-more-btn {
   opacity: 1;
-}
-
-.item-more-btn {
-  background: none;
-  border: none;
-  color: var(--text-sub);
-  cursor: pointer;
-  padding: 2px;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.item-more-btn:hover {
-  background: var(--bg-hover);
-  color: var(--text-main);
 }
 
 .item-more-menu {
   position: absolute;
   top: 100%;
-  right: 10px;
-  background: var(--bg-sidebar);
+  right: 5px;
+  background: var(--add-chat-bg);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 4px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   min-width: 100px;
   z-index: 100;
 }
@@ -629,7 +641,7 @@ onMounted(() => {
   padding: 6px 10px;
   border-radius: 4px;
   cursor: pointer;
-  font-size: var(--font-size-md);
+  font-size: 14px;
   color: var(--text-main);
 }
 
@@ -651,7 +663,7 @@ onMounted(() => {
   border: 1px solid var(--primary);
   border-radius: 4px;
   color: var(--text-main);
-  padding: 2px 6px;
+  padding: 6px 12px;
   outline: none;
   font-size: inherit;
 }

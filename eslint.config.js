@@ -1,36 +1,62 @@
 import js from '@eslint/js'
 import pluginVue from 'eslint-plugin-vue'
 import globals from 'globals'
+import tseslint from 'typescript-eslint'
 
 export default [
   js.configs.recommended,
+  ...tseslint.configs.recommended,
   ...pluginVue.configs['flat/recommended'],
   {
-    files: ['**/*.{js,vue}'],
+    files: ['**/*.{js,ts}'],
     languageOptions: {
-      ecmaVersion: 'latest',
-      sourceType: 'module',
-      // 全局变量，未声明不会报错，但是会提示未使用
+      parser: tseslint.parser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+      },
       globals: {
         ...globals.browser,
         ...globals.node,
       },
     },
+  },
+  {
+    files: ['**/*.vue'],
+    languageOptions: {
+      parser: pluginVue.parser,
+      parserOptions: {
+        parser: tseslint.parser,
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+      },
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+      },
+    },
+  },
+  {
+    files: ['**/*.{js,ts,vue}'],
     rules: {
-      'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }], // 检查未使用的变量，忽略以 _ 开头的变量
-      'prefer-const': 'error', // 建议使用 const 而不是 var
-      'no-var': 'error', // 不建议使用 var 语句
-      'object-shorthand': 'error', // 建议使用对象字面量
-      'vue/multi-word-component-names': 'off', // 关闭多词组件名检查，允许单词组件名
-      'vue/no-v-html': 'warn', // 对 v-html 指令发出警告，防止 XSS 风险
-      'vue/require-default-prop': 'off', // 关闭 props 默认值检查
-      'vue/require-prop-types': 'off', // 关闭 props 类型检查
-      'vue/singleline-html-element-content-newline': 'off', // 关闭单行元素内容换行检查
+      'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      'prefer-const': 'error',
+      'no-var': 'error',
+      'object-shorthand': 'error',
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        { argsIgnorePattern: '^_' },
+      ],
+      'vue/multi-word-component-names': 'off',
+      'vue/no-v-html': 'warn',
+      'vue/require-default-prop': 'off',
+      'vue/require-prop-types': 'off',
+      'vue/singleline-html-element-content-newline': 'off',
       'vue/html-self-closing': [
         'warn',
         {
           html: {
-            void: 'always', // 允许 void 元素自闭合
+            void: 'always',
             component: 'always',
           },
         },
@@ -38,6 +64,6 @@ export default [
     },
   },
   {
-    ignores: ['dist/**', 'node_modules/**', '*.config.js'], // 忽略 dist 目录、node_modules 目录和所有 config.js 文件
+    ignores: ['dist/**', 'node_modules/**', '*.config.js'],
   },
 ]

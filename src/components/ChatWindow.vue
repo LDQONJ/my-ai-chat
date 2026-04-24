@@ -1,10 +1,27 @@
 <template>
   <div class="chat-window">
-    <MessageItem
-      v-for="msg in messages"
-      :key="msg.id"
-      :message="msg"
-    />
+    <template v-if="messages.length > 0">
+      <MessageItem
+        v-for="msg in messages"
+        :key="msg.id"
+        :message="msg"
+      />
+    </template>
+    <template v-else>
+      <SplitText
+        text="你好，想聊点什么？"
+        class-name="hello-text"
+        :delay="50"
+        :duration="0.6"
+        ease="power3.out"
+        split-type="chars"
+        :from="{ opacity: 0, y: 40 }"
+        :to="{ opacity: 1, y: 0 }"
+        :threshold="0.1"
+        root-margin="-100px"
+        text-align="center"
+      />
+    </template>
   </div>
 </template>
 
@@ -12,11 +29,12 @@
 import { computed } from 'vue'
 import { useChatStore } from '@/store/chat'
 import MessageItem from '@/components/MessageItem.vue'
+import SplitText from '@/components/common/SplitText.vue'
 const store = useChatStore()
 const messages = computed(() => store.messages)
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .chat-window {
   flex: 1;
   padding: 75px 0px
@@ -26,5 +44,18 @@ const messages = computed(() => store.messages)
   );
   max-width: 800px;
   width: 100%;
+}
+
+.hello-text {
+  font-size: 24px;
+  font-weight: 600;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.is-mobile .hello-text {
+  font-size: 20px;
 }
 </style>

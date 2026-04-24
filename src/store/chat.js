@@ -17,6 +17,7 @@ export const useChatStore = defineStore('chat', {
     isPromptEnabled: localStorage.getItem('isPromptEnabled') === 'true',
     isModelSwitched: localStorage.getItem('isModelSwitched') === 'true',
     abortController: null,
+    newSessionId: null,
   }),
 
   getters: {
@@ -33,6 +34,11 @@ export const useChatStore = defineStore('chat', {
       } catch (error) {
         console.error('初始化模型失败:', error)
       }
+    },
+
+    // 设置新会话ID
+    setNewSessionId(id) {
+      this.newSessionId = id
     },
 
     setPromptEnabled(val) {
