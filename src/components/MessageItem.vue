@@ -32,12 +32,12 @@
             </div>
           </div>
           <div
-            lang="en"
             v-show="showThinking"
+            lang="en"
             class="thinking-content markdown"
             @click="handleMarkdownClick"
             v-html="renderMarkdown(message.thinking)"
-          ></div>
+          />
         </div>
 
         <template
@@ -46,8 +46,8 @@
         >
           <!-- 文本 -->
           <div
-            lang="en"
             v-if="block.type === 'text'"
+            lang="en"
             class="markdown"
             @click="handleMarkdownClick"
             v-html="
@@ -72,7 +72,10 @@
 
             <pre
               class="code-block"
-            ><code ref="setCodeRef">{{ block.content }}<span v-if="i === message.blocks.length - 1 && isStreaming" class="cursor"></span></code></pre>
+            ><code ref="setCodeRef">{{ block.content }}<span
+              v-if="i === message.blocks.length - 1 && isStreaming"
+              class="cursor"
+            /></code></pre>
           </div>
         </template>
 
@@ -96,13 +99,11 @@ import hljs from 'highlight.js'
 import DOMPurify from 'dompurify'
 import { nextTick, computed, ref } from 'vue'
 import Icon from '@/components/common/Icon.vue'
-import { useChatStore } from '@/store/chat'
 
 const props = defineProps({
   message: Object,
 })
 
-const store = useChatStore()
 const showThinking = ref(true)
 
 // 是否正在思考中
@@ -194,7 +195,6 @@ md.renderer.rules.code_inline = (tokens, idx, options, env, self) => {
 }
 
 // 自定义渲染规则，为 markdown 中的代码块添加头部和样式
-const defaultFence = md.renderer.rules.fence
 md.renderer.rules.fence = (tokens, idx, options, env, self) => {
   const token = tokens[idx]
   const info = token.info ? token.info.trim() : ''

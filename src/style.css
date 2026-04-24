@@ -50,8 +50,8 @@
   --line-height-main: 1.5;
   --line-height-thinking: 1.4;
   --font-family-text:
-    'JetBrains Mono', 'PingFang SC', -apple-system, BlinkMacSystemFont,
-    'Microsoft YaHei', sans-serif;
+    'PingFang SC', -apple-system, BlinkMacSystemFont, 'Microsoft YaHei',
+    sans-serif;
   --font-family-mono:
     'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
     'Liberation Mono', 'Courier New', monospace;
