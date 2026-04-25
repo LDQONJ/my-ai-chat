@@ -16,7 +16,7 @@ export const userApi = {
    * @param {Object} data { username, password, email, phone, code }
    */
   login(data) {
-    return request.post('/users/login', data)
+    return request.post('/auth/login', data)
   },
 
   /**
