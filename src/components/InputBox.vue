@@ -1,58 +1,60 @@
 <template>
   <div class="input-wrap">
-    <div class="input-inner">
-      <textarea
-        ref="textareaRef"
-        v-model="text"
-        placeholder="给 LDQ's AI 发送消息"
-        rows="2"
-        @focus="focus = true"
-        @blur="focus = false"
-        @keydown.enter="handleEnter"
-      />
+    <div class="input-bg">
+      <div class="input-inner">
+        <textarea
+          ref="textareaRef"
+          v-model="text"
+          placeholder="给 LDQ's AI 发送消息"
+          rows="2"
+          @focus="focus = true"
+          @blur="focus = false"
+          @keydown.enter="handleEnter"
+        />
 
-      <!-- 深度思考按钮 -->
-      <div class="input-footer">
+        <!-- 深度思考按钮 -->
+        <div class="input-footer">
+          <button
+            class="think-btn"
+            :class="{ active: store.isThink }"
+            @click="store.toggleThink"
+          >
+            <div class="think-icon">
+              <Icon
+                :icon-class="'icon-deepseek'"
+                :font-size="13"
+              />
+            </div>
+            <span>深度思考</span>
+          </button>
+        </div>
+
         <button
-          class="think-btn"
-          :class="{ active: store.isThink }"
-          @click="store.toggleThink"
+          class="send-btn"
+          :class="{
+            'stop-btn': store.isStreaming,
+            disabled: isInputEmpty && !store.isStreaming,
+          }"
+          :disabled="isInputEmpty && !store.isStreaming"
+          :title="isInputEmpty && !store.isStreaming ? '请输入内容' : ''"
+          @click="send"
         >
-          <div class="think-icon">
+          <div class="send-icon">
+            <!-- 停止图标 -->
             <Icon
-              :icon-class="'icon-deepseek'"
-              :font-size="13"
+              v-if="store.isStreaming"
+              :icon-class="'icon-stop'"
+              :font-size="14"
+            />
+            <!-- 发送图标 -->
+            <Icon
+              v-else
+              :icon-class="'icon-up-arrow'"
+              :font-size="17"
             />
           </div>
-          <span>深度思考</span>
         </button>
       </div>
-
-      <button
-        class="send-btn"
-        :class="{
-          'stop-btn': store.isStreaming,
-          disabled: isInputEmpty && !store.isStreaming,
-        }"
-        :disabled="isInputEmpty && !store.isStreaming"
-        :title="isInputEmpty && !store.isStreaming ? '请输入内容' : ''"
-        @click="send"
-      >
-        <div class="send-icon">
-          <!-- 停止图标 -->
-          <Icon
-            v-if="store.isStreaming"
-            :icon-class="'icon-stop'"
-            :font-size="14"
-          />
-          <!-- 发送图标 -->
-          <Icon
-            v-else
-            :icon-class="'icon-up-arrow'"
-            :font-size="17"
-          />
-        </div>
-      </button>
     </div>
   </div>
 </template>
@@ -137,17 +139,32 @@ const watchText = () => {
   width: 100%;
 }
 
-.input-inner {
+/* 输入框背景，防止下面两个角盖不住消息 */
+.input-bg {
   display: flex;
   flex-direction: column;
   /* 改为纵向布局以容纳 footer */
   align-items: flex-start;
+  background: var(--bg-main);
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  transition: all 0.3s ease;
+  max-width: 800px;
+  position: relative;
+  /* 为按钮定位提供参考 */
+}
+
+.input-inner {
+  display: flex;
+  flex-direction: column;
+  /* 改为纵向布局以容纳 footer */
   background: var(--bg-card);
   border-radius: 16px;
   padding: 4px;
   border: 1px solid var(--border);
   transition: all 0.3s ease;
-  max-width: 800px;
+  width: 100%;
+  height: 100%;
   position: relative;
   /* 为按钮定位提供参考 */
 }
