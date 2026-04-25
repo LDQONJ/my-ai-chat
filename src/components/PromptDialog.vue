@@ -100,8 +100,8 @@ const fetchPrompt = async () => {
       rules: form.rules,
     }
   } catch (error) {
-    console.error('获取会话提示词失败:', error)
-    ElMessage.error('获取会话提示词失败')
+    console.error('获取对话提示词失败:', error)
+    ElMessage.error(error.message || '获取对话提示词失败')
   }
 }
 
@@ -115,8 +115,8 @@ const handleSave = async () => {
     ElMessage.success('保存成功')
     close()
   } catch (error) {
-    console.error('保存会话提示词失败:', error)
-    ElMessage.error(error.message || '保存失败')
+    console.error('保存对话提示词失败:', error)
+    ElMessage.error(error.message || '保存对话提示词失败')
   } finally {
     saving.value = false
   }

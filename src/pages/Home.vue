@@ -194,7 +194,8 @@ const refreshUserInfo = async () => {
         userStore.setUserInfo(userInfo)
       }
     } catch (error) {
-      console.error('刷新用户信息失败:', error)
+      console.error('获取用户信息失败:', error)
+      ElMessage.error(error.message || '获取用户信息失败')
       // 如果token无效，清除本地存储
       localStorage.removeItem('token')
       localStorage.removeItem('userInfo')
@@ -222,10 +223,11 @@ const createSession = async () => {
         })
       }
 
-      console.log('会话创建成功，sessionId:', sessionId)
+      console.log('新对话创建成功，sessionId:', sessionId)
     }
   } catch (error) {
-    console.error('创建会话失败:', error)
+    console.error('创建新对话失败:', error)
+    ElMessage.error(error.message || '创建新对话失败')
   }
 }
 

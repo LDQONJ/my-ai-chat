@@ -194,8 +194,8 @@ const handleFileUpload = async event => {
     const res = await fileApi.upload(formData)
     form.avatar = res // 假设响应 data 为文件路径字符串
     ElMessage.success('头像上传成功')
-  } catch (err) {
-    ElMessage.error(err.message || '头像上传失败')
+  } catch (error) {
+    ElMessage.error(error.message || '头像上传失败')
   }
 }
 
@@ -228,8 +228,8 @@ const handleSendCode = async () => {
         countdown.value = 60
       }
     }, 1000)
-  } catch (err) {
-    ElMessage.error(err.message || '发送失败')
+  } catch (error) {
+    ElMessage.error(error.message || '发送失败')
     sendingCode.value = false
   }
 }
@@ -266,10 +266,8 @@ const handleSubmit = async () => {
     } else {
       throw new Error('响应数据异常')
     }
-  } catch (err) {
-    ElMessage.error(
-      err.message || (isLoginMode.value ? '登录失败' : '注册失败'),
-    )
+  } catch (error) {
+    ElMessage.error(error.message || (isLoginMode.value ? '登录失败' : '注册失败'))
   } finally {
     loading.value = false
   }

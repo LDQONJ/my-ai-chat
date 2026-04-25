@@ -347,6 +347,7 @@ const fetchGlobalPrompt = async () => {
     globalPrompt.rules = res.rules || ''
   } catch (error) {
     console.error('获取全局提示词失败:', error)
+    ElMessage.error(error.message || '获取全局提示词失败')
   }
 }
 
@@ -441,7 +442,7 @@ const fetchModels = async () => {
     chatStore.setCurrentModel(currentRes.id, currentRes.name)
   } catch (error) {
     console.error('获取模型列表失败:', error)
-    ElMessage.error('获取模型列表失败')
+    ElMessage.error(error.message || '获取模型列表失败')
   } finally {
     loadingModels.value = false
   }
@@ -457,7 +458,9 @@ const changeModel = async modelId => {
     ElMessage.success('模型切换成功')
   } catch (error) {
     console.error('切换模型失败:', error)
-    ElMessage.error('切换模型失败')
+    ElMessage.error(error.message || '切换模型失败')
+
+
   }
 }
 

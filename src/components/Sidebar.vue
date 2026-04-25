@@ -240,7 +240,8 @@ const fetchSessionList = async () => {
       }
     }
   } catch (error) {
-    console.error('获取会话列表失败:', error)
+    console.error('获取对话列表失败:', error) 
+    ElMessage.error(error.message || '获取对话列表失败')
   }
 }
 
@@ -357,7 +358,8 @@ const createChat = async () => {
       localStorage.setItem('isNewSession', 'true')
     }
   } catch (error) {
-    console.error('创建新会话失败:', error)
+    console.error('创建新对话失败:', error)
+    ElMessage.error(error.message || '创建新对话失败')
     // 出错时使用原来的createChat逻辑
     store.createChat()
     localStorage.setItem('isNewSession', 'true')
@@ -410,7 +412,7 @@ const handleRename = async id => {
     ElMessage.success('重命名成功')
     renamingId.value = null
   } catch (error) {
-    ElMessage.error('重命名失败')
+    ElMessage.error(error.message || '重命名失败')
     console.error(error)
   }
 }
@@ -436,7 +438,7 @@ const handleDelete = async id => {
     ElMessage.success('删除成功')
     itemMenuVisibleId.value = null
   } catch (error) {
-    ElMessage.error('删除失败')
+    ElMessage.error(error.message || '删除失败')
     console.error(error)
   }
 }
