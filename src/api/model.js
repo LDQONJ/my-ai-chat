@@ -5,12 +5,6 @@ import request from '@/utils/request'
  */
 export const modelApi = {
   /**
-   * 当前模型
-   */
-  current() {
-    return request.get('/model')
-  },
-  /**
    * 切换模型
    * @param {string} modelId 模型ID
    */

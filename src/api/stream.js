@@ -5,6 +5,7 @@ export async function streamChat(
   think = false,
   prompt = false,
   signal,
+  modelId,
 ) {
   console.log(messages)
   const userMessage = messages.filter(msg => msg.role === 'user')
@@ -27,9 +28,26 @@ export async function streamChat(
       text: userMessage[userMessage.length - 1].content,
       think,
       prompt,
+      modelId,
     }),
     signal,
   })
+
+  if (!res.ok) {
+    throw new Error(`HTTP error! status: ${res.status}`)
+  }
+
+  const contentType = res.headers.get('Content-Type')
+  if (contentType && contentType.includes('application/json')) {
+    const json = await res.json()
+    if (json.code === 403) {
+      throw new Error('403')
+    }
+    // 其他错误码也可以在这里处理
+    if (json.code !== 200 && json.code !== 0) {
+      throw new Error(json.msg || '请求失败')
+    }
+  }
 
   const reader = res.body.getReader()
 

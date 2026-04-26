@@ -27,12 +27,17 @@ export const useChatStore = defineStore('chat', {
   },
 
   actions: {
-    async initModel() {
+    async fetchModels() {
       try {
-        const currentRes = await modelApi.current()
-        this.setCurrentModel(currentRes.id, currentRes.name)
+        const listRes = await modelApi.list()
+        // 如果当前没有选择模型，默认选择第一个
+        if (!this.currentModelId && listRes.length > 0) {
+          this.setCurrentModel(listRes[0].id, listRes[0].name)
+        }
+        return listRes
       } catch (error) {
-        console.error('初始化模型失败:', error)
+        console.error('获取模型列表失败:', error)
+        throw error
       }
     },
 
@@ -149,12 +154,19 @@ export const useChatStore = defineStore('chat', {
           think,
           prompt,
           this.abortController.signal,
+          this.currentModelId,
         )
       } catch (error) {
         if (error.name === 'AbortError') {
           console.log('Stream aborted')
+        } else if (error.message === '403') {
+          // 权限不足，回退消息
+          list.splice(list.length - 2, 2)
+          ElMessage.error('没有该模型的使用权限')
+          throw error
         } else {
           console.error('Stream error:', error)
+          ElMessage.error(error.message || '发送消息失败')
         }
       } finally {
         parser.end()
@@ -209,11 +221,11 @@ export const useChatStore = defineStore('chat', {
     },
 
     toggleThink() {
-      // 如果当前是 DeepSeek 模型，不允许关闭思考模式
+      // 如果当前是 DeepSeek-R1 模型，不允许关闭思考模式
       if (
         this.isThink &&
-        (this.currentModelId.toLowerCase().includes('deepseek') ||
-          this.currentModelName.toLowerCase().includes('deepseek'))
+        (this.currentModelId.toLowerCase().includes('r1') ||
+          this.currentModelName.toLowerCase().includes('r1'))
       ) {
         ElMessage.warning('DeepSeek-R1模型只支持思考模式')
         return

@@ -71,7 +71,7 @@ const textareaRef = ref()
 
 const isInputEmpty = computed(() => !text.value.trim())
 
-const send = () => {
+const send = async () => {
   if (store.isStreaming) {
     store.stopStream()
     return
@@ -81,10 +81,21 @@ const send = () => {
     return
   }
 
-  store.sendStream(text.value)
+  const originalText = text.value
   text.value = ''
   if (textareaRef.value) {
     textareaRef.value.style.height = 'auto'
+  }
+
+  try {
+    await store.sendStream(originalText)
+  } catch (error) {
+    if (error.message === '403') {
+      text.value = originalText
+      nextTick(() => {
+        autoResize()
+      })
+    }
   }
 }
 

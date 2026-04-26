@@ -434,14 +434,8 @@ const handleFileUpload = async event => {
 const fetchModels = async () => {
   loadingModels.value = true
   try {
-    const [listRes, currentRes] = await Promise.all([
-      modelApi.list(),
-      modelApi.current(),
-    ])
-    models.value = listRes
-    chatStore.setCurrentModel(currentRes.id, currentRes.name)
+    models.value = await chatStore.fetchModels()
   } catch (error) {
-    console.error('获取模型列表失败:', error)
     ElMessage.error(error.message || '获取模型列表失败')
   } finally {
     loadingModels.value = false
@@ -459,8 +453,6 @@ const changeModel = async modelId => {
   } catch (error) {
     console.error('切换模型失败:', error)
     ElMessage.error(error.message || '切换模型失败')
-
-
   }
 }
 

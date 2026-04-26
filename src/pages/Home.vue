@@ -310,7 +310,7 @@ onMounted(() => {
   window.addEventListener('resize', checkWidth)
 
   refreshUserInfo()
-  store.initModel()
+  store.fetchModels()
 
   const token = localStorage.getItem('token')
   if (!token) {
