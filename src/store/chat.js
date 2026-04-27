@@ -157,17 +157,9 @@ export const useChatStore = defineStore('chat', {
           this.currentModelId,
         )
       } catch (error) {
-        if (error.name === 'AbortError') {
-          console.log('Stream aborted')
-        } else if (error.message === '403') {
-          // 权限不足，回退消息
-          list.splice(list.length - 2, 2)
-          ElMessage.error('没有该模型的使用权限')
-          throw error
-        } else {
-          console.error('Stream error:', error)
-          ElMessage.error(error.message || '发送消息失败')
-        }
+        list.splice(list.length - 2, 2)
+        ElMessage.error(error.message || '发送消息失败')
+        throw error
       } finally {
         parser.end()
         currentMsg.streaming = false

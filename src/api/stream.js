@@ -40,13 +40,7 @@ export async function streamChat(
   const contentType = res.headers.get('Content-Type')
   if (contentType && contentType.includes('application/json')) {
     const json = await res.json()
-    if (json.code === 403) {
-      throw new Error('403')
-    }
-    // 其他错误码也可以在这里处理
-    if (json.code !== 200 && json.code !== 0) {
-      throw new Error(json.msg || '请求失败')
-    }
+    throw new Error(json.msg || '请求失败')
   }
 
   const reader = res.body.getReader()

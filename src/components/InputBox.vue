@@ -90,12 +90,10 @@ const send = async () => {
   try {
     await store.sendStream(originalText)
   } catch (error) {
-    if (error.message === '403') {
-      text.value = originalText
-      nextTick(() => {
-        autoResize()
-      })
-    }
+    text.value = originalText
+    nextTick(() => {
+      autoResize()
+    })
   }
 }
 
