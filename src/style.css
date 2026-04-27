@@ -90,11 +90,8 @@
 }
 
 @font-face {
-  font-family: 'PingFang SC';
-  src: url('/fonts/苹方黑体-准-简.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
+    font-family: 'PingFangSC-Regular-woff2';
+    src: url('/fonts/PingFangSC-Regular.woff2') format('woff2');
 }
 
 @font-face {
