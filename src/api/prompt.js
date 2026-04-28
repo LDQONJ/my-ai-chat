@@ -6,7 +6,7 @@ import request from '@/utils/request'
 export const promptApi = {
   /**
    * 设置全局提示词
-   * @param {Object} data { persona, rules }
+   * @param {Object} data { persona, rules, example }
 
    */
   setGlobal(data) {
@@ -20,7 +20,7 @@ export const promptApi = {
   },
   /**
    * 设置对话提示词
-   * @param {Object} data { persona, rules }
+   * @param {Object} data { persona, rules, example }
    */
   setSession(id, data) {
     return request.post(`/prompt/${id}`, data)

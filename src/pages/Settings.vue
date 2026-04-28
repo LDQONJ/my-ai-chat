@@ -148,7 +148,10 @@
       <section class="settings-section">
         <div class="section-header">
           <div class="title-with-switch">
-            <div class="section-title">全局提示词</div>
+            <div class="header-title">
+              <div class="section-title">全局提示词</div>
+              <!-- <span class="header-subtitle">(全局默认设置)</span> -->
+            </div>
             <div
               class="switch-container"
               @click="togglePromptEnabled"
@@ -181,10 +184,10 @@
           >
             <button
               class="save-btn"
-              :loading="savingPrompt"
+              :disabled="savingPrompt"
               @click="savePrompt"
             >
-              保存
+              {{ savingPrompt ? '保存中...' : '保存' }}
             </button>
             <button
               class="cancel-btn"
@@ -223,6 +226,84 @@
               class="prompt-text"
             >
               {{ globalPrompt.rules || '未设置' }}
+            </div>
+          </div>
+          <div class="field">
+            <div class="field-header">
+              <label>对话示例 (Examples)</label>
+              <button
+                v-if="isEditingPrompt"
+                class="add-example-btn"
+                @click="addExample"
+              >
+                + 新增示例
+              </button>
+            </div>
+            <div
+              v-if="isEditingPrompt"
+              class="example-list-edit"
+            >
+              <div
+                v-for="(item, index) in editPromptForm.example"
+                :key="index"
+                class="example-item-edit"
+              >
+                <div class="example-inputs">
+                  <div class="input-group">
+                    <span class="input-label">用户</span>
+                    <textarea
+                      v-model="item['用户']"
+                      placeholder="用户消息示例..."
+                      rows="2"
+                    ></textarea>
+                  </div>
+                  <div class="input-group">
+                    <span class="input-label">AI</span>
+                    <textarea
+                      v-model="item['AI']"
+                      placeholder="AI 消息示例..."
+                      rows="2"
+                    ></textarea>
+                  </div>
+                </div>
+                <button
+                  class="remove-example-btn"
+                  @click="removeExample(index)"
+                >
+                  删除
+                </button>
+              </div>
+              <div
+                v-if="!editPromptForm.example?.length"
+                class="no-data"
+              >
+                暂无示例
+              </div>
+            </div>
+            <div
+              v-else
+              class="example-list-view"
+            >
+              <div
+                v-for="(item, index) in globalPrompt.example"
+                :key="index"
+                class="example-item-view"
+              >
+                <div class="view-group">
+                  <span class="view-label">用户:</span>
+                  <span class="view-content">{{ item['用户'] }}</span>
+                </div>
+                <div class="view-group">
+                  <span class="view-label">AI:</span>
+                  <span class="view-content">{{ item['AI'] }}</span>
+                </div>
+              </div>
+              <div
+                v-if="!globalPrompt.example?.length"
+                class="prompt-text"
+              >
+                未设置
+              </div>
             </div>
           </div>
         </div>
@@ -295,10 +376,12 @@ const savingPrompt = ref(false)
 const globalPrompt = reactive({
   persona: '',
   rules: '',
+  example: [],
 })
 const editPromptForm = reactive({
   persona: '',
   rules: '',
+  example: [],
 })
 
 const isEditing = ref(false)
@@ -345,6 +428,13 @@ const fetchGlobalPrompt = async () => {
     const res = await promptApi.getGlobal()
     globalPrompt.persona = res.persona || ''
     globalPrompt.rules = res.rules || ''
+    // 过滤掉可能的空对象，并适配后端新格式 (userMsg/aiMsg -> 用户/AI)
+    globalPrompt.example = (res.example || [])
+      .map(item => ({
+        用户: item.userMsg || '',
+        AI: item.aiMsg || '',
+      }))
+      .filter(item => item['用户'] || item['AI'])
   } catch (error) {
     console.error('获取全局提示词失败:', error)
     ElMessage.error(error.message || '获取全局提示词失败')
@@ -354,6 +444,7 @@ const fetchGlobalPrompt = async () => {
 const startEditingPrompt = () => {
   editPromptForm.persona = globalPrompt.persona
   editPromptForm.rules = globalPrompt.rules
+  editPromptForm.example = JSON.parse(JSON.stringify(globalPrompt.example))
   isEditingPrompt.value = true
 }
 
@@ -364,9 +455,27 @@ const cancelEditingPrompt = () => {
 const savePrompt = async () => {
   savingPrompt.value = true
   try {
-    await promptApi.setGlobal(editPromptForm)
+    // 过滤掉未填写的示例，并适配后端新格式 (用户/AI -> userMsg/aiMsg)
+    const cleanedExample = (editPromptForm.example || [])
+      .filter(item => item['用户']?.trim() || item['AI']?.trim())
+      .map(item => ({
+        userMsg: item['用户'] || '',
+        aiMsg: item['AI'] || '',
+      }))
+    const dataToSave = {
+      ...editPromptForm,
+      example: cleanedExample,
+    }
+    await promptApi.setGlobal(dataToSave)
     globalPrompt.persona = editPromptForm.persona
     globalPrompt.rules = editPromptForm.rules
+    // 界面展示依旧使用“用户”和“AI”
+    const displayExample = (editPromptForm.example || []).filter(
+      item => item['用户']?.trim() || item['AI']?.trim(),
+    )
+    globalPrompt.example = JSON.parse(JSON.stringify(displayExample))
+    // 同步回编辑表单，移除掉被过滤的空白项
+    editPromptForm.example = JSON.parse(JSON.stringify(displayExample))
     ElMessage.success('更新成功')
     isEditingPrompt.value = false
   } catch (error) {
@@ -375,6 +484,17 @@ const savePrompt = async () => {
   } finally {
     savingPrompt.value = false
   }
+}
+
+const addExample = () => {
+  if (!editPromptForm.example) {
+    editPromptForm.example = []
+  }
+  editPromptForm.example.push({ 用户: '', AI: '' })
+}
+
+const removeExample = index => {
+  editPromptForm.example.splice(index, 1)
 }
 
 const saveUserInfo = async () => {
@@ -722,16 +842,175 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 4px;
-}
+  margin-bottom: 24px;
 
-.field label {
-  font-size: 14px;
-  color: var(--text-sub);
-}
+  &:last-child {
+    margin-bottom: 0;
+  }
 
-.field span {
-  font-size: 15px;
-  color: var(--text-main);
+  label {
+    display: block;
+    font-size: 13px;
+    color: var(--text-sub);
+    margin-bottom: 8px;
+  }
+
+  .field-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+
+    label {
+      margin-bottom: 0;
+    }
+  }
+
+  .add-example-btn {
+    font-size: 12px;
+    color: var(--primary);
+    background: none;
+    border: 1px solid var(--primary);
+    padding: 4px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      background-color: var(--primary);
+      color: white;
+    }
+  }
+
+  .example-list-edit {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    .example-item-edit {
+      background: var(--bg-main);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      position: relative;
+
+      .example-inputs {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+
+        .input-group {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+
+          .input-label {
+            font-size: 11px;
+            color: var(--text-sub);
+            font-weight: 500;
+          }
+
+          textarea {
+            width: 100%;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            line-height: 1.5;
+            resize: vertical;
+            outline: none;
+
+            &:focus {
+              border-color: var(--primary);
+            }
+          }
+        }
+      }
+
+      .remove-example-btn {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        font-size: 11px;
+        color: #ff4d4f;
+        background: none;
+        border: 1px solid #ff4d4f;
+        padding: 2px 8px;
+        border-radius: 4px;
+        cursor: pointer;
+        opacity: 0.6;
+        transition: all 0.2s;
+
+        &:hover {
+          opacity: 1;
+          background-color: #ff4d4f;
+          color: white;
+        }
+      }
+    }
+  }
+
+  .example-list-view {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    .example-item-view {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 12px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      .view-group {
+        margin-bottom: 8px;
+        display: flex;
+        gap: 8px;
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+
+        .view-label {
+          font-size: 12px;
+          color: var(--text-sub);
+          font-weight: 600;
+          white-space: nowrap;
+          width: 40px;
+          line-height: 1.5;
+        }
+
+        .view-content {
+          font-size: 14px;
+          color: var(--text-main);
+          line-height: 1.5;
+          white-space: pre-wrap;
+        }
+      }
+    }
+  }
+
+  .no-data {
+    text-align: center;
+    padding: 20px;
+    color: var(--text-sub);
+    font-size: 13px;
+    background: var(--bg-main);
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+  }
+
+  span {
+    font-size: 15px;
+    color: var(--text-main);
+  }
 }
 
 .field input,
@@ -908,6 +1187,17 @@ onMounted(() => {
   }
 
   .settings-section {
+    .header-title {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .header-subtitle {
+      font-size: 11px;
+      color: var(--text-sub);
+    }
+
     .section-title {
       font-size: 15px;
     }
