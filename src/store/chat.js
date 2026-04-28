@@ -12,6 +12,7 @@ export const useChatStore = defineStore('chat', {
     isStreaming: false,
     sidebarVisible: true,
     isThink: false,
+    isSearch: false,
     currentModelId: localStorage.getItem('currentModelId') || '',
     currentModelName: localStorage.getItem('currentModelName') || '',
     isPromptEnabled: localStorage.getItem('isPromptEnabled') === 'true',
@@ -77,6 +78,7 @@ export const useChatStore = defineStore('chat', {
 
       const think = this.isThink
       const prompt = this.isPromptEnabled
+      const search = this.isSearch
 
       // 检查是否需要生成标题（对于新会话的第一条消息）
       const chat = this.chatList.find(c => c.id === this.activeId)
@@ -155,6 +157,7 @@ export const useChatStore = defineStore('chat', {
           prompt,
           this.abortController.signal,
           this.currentModelId,
+          search,
         )
       } catch (error) {
         list.splice(list.length - 2, 2)
@@ -223,6 +226,10 @@ export const useChatStore = defineStore('chat', {
         return
       }
       this.isThink = !this.isThink
+    },
+
+    toggleSearch() {
+      this.isSearch = !this.isSearch
     },
 
     reset() {

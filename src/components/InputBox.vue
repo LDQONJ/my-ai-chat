@@ -12,7 +12,7 @@
           @keydown.enter="handleEnter"
         />
 
-        <!-- 深度思考按钮 -->
+        <!-- 深度思考 & 联网搜索按钮 -->
         <div class="input-footer">
           <button
             class="think-btn"
@@ -26,6 +26,20 @@
               />
             </div>
             <span>深度思考</span>
+          </button>
+
+          <button
+            class="think-btn"
+            :class="{ active: store.isSearch }"
+            @click="store.toggleSearch"
+          >
+            <div class="think-icon">
+              <Icon
+                :icon-class="'icon-web'"
+                :font-size="13"
+              />
+            </div>
+            <span>联网搜索</span>
           </button>
         </div>
 
@@ -188,6 +202,7 @@ const watchText = () => {
   padding: 4px 8px;
   display: flex;
   justify-content: flex-start;
+  gap: 8px;
 }
 
 .think-btn {

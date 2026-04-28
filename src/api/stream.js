@@ -6,6 +6,7 @@ export async function streamChat(
   prompt = false,
   signal,
   modelId,
+  search = false,
 ) {
   console.log(messages)
   const userMessage = messages.filter(msg => msg.role === 'user')
@@ -29,6 +30,7 @@ export async function streamChat(
       think,
       prompt,
       modelId,
+      search,
     }),
     signal,
   })
