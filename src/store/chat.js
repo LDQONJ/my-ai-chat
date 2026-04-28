@@ -111,6 +111,7 @@ export const useChatStore = defineStore('chat', {
       const aiMsg = {
         id: Date.now() + 1,
         role: 'assistant',
+        name: this.currentModelName,
         blocks: [],
         thinking: '', // 存储思考内容
         streaming: true,

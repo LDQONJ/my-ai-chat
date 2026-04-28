@@ -2,6 +2,14 @@
   <div :class="['msg', message.role]">
     <template v-if="message.role === 'assistant'">
       <div class="bubble assistant">
+        <!-- 模型名称 -->
+        <div
+          v-if="message.name"
+          class="model-name"
+        >
+          {{ message.name }}
+        </div>
+
         <!-- 模型加载提示 -->
         <div
           v-if="message.modelLoading"
@@ -86,9 +94,21 @@
     <!-- 用户消息 -->
     <div
       v-else
-      class="bubble user"
+      class="user-message-wrapper"
     >
-      {{ formatUserText(message.content) }}
+      <div class="user-info">
+        <span class="user-name">{{ userStore.displayName || '用户' }}</span>
+        <img
+          :src="userAvatar"
+          class="user-avatar"
+          alt="用户头像"
+        />
+      </div>
+      <div class="bubble user">
+        <div class="user-content">
+          {{ formatUserText(message.content) }}
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -99,9 +119,23 @@ import hljs from 'highlight.js'
 import DOMPurify from 'dompurify'
 import { nextTick, computed, ref } from 'vue'
 import Icon from '@/components/common/Icon.vue'
+import { useUserStore } from '@/store/user'
 
 const props = defineProps({
   message: Object,
+})
+
+const userStore = useUserStore()
+
+const userAvatar = computed(() => {
+  if (!userStore.avatar) return userStore.defaultAvatar
+  if (
+    userStore.avatar.startsWith('http') ||
+    userStore.avatar.startsWith('data:')
+  )
+    return userStore.avatar
+  const host = import.meta.env.VITE_API_HOST
+  return `${host}${userStore.avatar}`
 })
 
 const showThinking = ref(true)
@@ -307,12 +341,10 @@ const handleMarkdownClick = event => {
 
 .msg.user {
   justify-content: flex-end;
-  color: var(--text-main-dark);
 }
 
 .bubble.user {
   padding: 10px 15px;
-  margin-right: 12px;
 }
 
 .bubble.assistant {
@@ -393,6 +425,15 @@ const handleMarkdownClick = event => {
   width: 100%;
 }
 
+.model-name {
+  font-size: 11px;
+  color: var(--text-sub);
+  margin-bottom: 8px;
+  font-weight: 500;
+  opacity: 0.8;
+  letter-spacing: 0.3px;
+}
+
 .model-loading-hint {
   display: flex;
   align-items: center;
@@ -419,10 +460,46 @@ const handleMarkdownClick = event => {
 }
 
 /* 修复：精确控制用户消息的样式 */
+.user-message-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  max-width: 70%;
+  margin-right: 12px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.user-name {
+  font-size: 11px;
+  color: var(--text-sub);
+  font-weight: 500;
+  opacity: 0.8;
+  letter-spacing: 0.3px;
+}
+
+.user-avatar {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--border);
+}
+
 .msg.user .bubble {
   background: #2563eb;
-  max-width: 70%;
   hyphens: manual;
+  max-width: 100%;
+}
+
+.msg.user .bubble .user-content {
+  color: white;
+  word-break: break-word;
 }
 
 /* markdown */

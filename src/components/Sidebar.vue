@@ -126,7 +126,7 @@
           class="user-detail"
         >
           <div class="username">
-            {{ userStore.username }}
+            {{ userStore.displayName }}
           </div>
           <div class="email">
             {{ userStore.email }}
@@ -270,6 +270,7 @@ const select = async (id, isAuto = false) => {
       const formattedMessages = sessionDetail.messages.map(msg => ({
         id: Date.now() + Math.random(), // 生成唯一ID
         role: msg.role,
+        name: msg.name,
         thinking: msg.thinking || '',
         content: msg.content || '',
         blocks: msg.content ? [{ type: 'text', content: msg.content }] : [],

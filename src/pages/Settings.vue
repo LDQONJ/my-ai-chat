@@ -660,7 +660,7 @@ onMounted(() => {
 .settings-section {
   width: 100%;
   max-width: 800px;
-  margin-bottom: 32px;
+  margin-bottom: 6px;
 
   .section-title {
     font-size: 17px;
@@ -835,14 +835,14 @@ onMounted(() => {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0;
 }
 
 .field {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  margin-bottom: 24px;
+  margin-bottom: 4px;
 
   &:last-child {
     margin-bottom: 0;
@@ -852,14 +852,14 @@ onMounted(() => {
     display: block;
     font-size: 13px;
     color: var(--text-sub);
-    margin-bottom: 8px;
+    margin-bottom: 0;
   }
 
   .field-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 12px;
+    margin-bottom: 4px;
 
     label {
       margin-bottom: 0;
@@ -956,14 +956,14 @@ onMounted(() => {
   .example-list-view {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 4px;
 
     .example-item-view {
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: 8px;
       padding: 12px 16px;
-      margin-bottom: 12px;
+      margin-bottom: 4px;
 
       &:last-child {
         margin-bottom: 0;
@@ -1040,7 +1040,7 @@ onMounted(() => {
   border-radius: 12px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 8px;
 }
 
 .prompt-text {
