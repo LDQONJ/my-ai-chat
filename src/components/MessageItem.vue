@@ -16,7 +16,7 @@
           class="model-loading-hint"
         >
           <div class="loading-spinner" />
-          <span>模型加载中，请稍后...</span>
+          <span>{{ loadingText }}</span>
         </div>
 
         <!-- 思考部分 -->
@@ -120,12 +120,14 @@ import DOMPurify from 'dompurify'
 import { nextTick, computed, ref } from 'vue'
 import Icon from '@/components/common/Icon.vue'
 import { useUserStore } from '@/store/user'
+import { useChatStore } from '@/store/chat'
 
 const props = defineProps({
   message: Object,
 })
 
 const userStore = useUserStore()
+const chatStore = useChatStore()
 
 const userAvatar = computed(() => {
   if (!userStore.avatar) return userStore.defaultAvatar
@@ -143,6 +145,10 @@ const showThinking = ref(true)
 // 是否正在思考中
 const isThinking = computed(() => {
   return props.message.streaming && !props.message.blocks.length
+})
+
+const loadingText = computed(() => {
+  return chatStore.wsStatusMessage || '模型加载中，请稍后...'
 })
 
 const md = new MarkdownIt({

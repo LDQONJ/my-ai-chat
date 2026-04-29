@@ -1,4 +1,6 @@
 import axios from 'axios'
+import { wsManager } from '../utils/websocket'
+
 export async function streamChat(
   messages,
   onChunk,
@@ -31,6 +33,7 @@ export async function streamChat(
       prompt,
       modelId,
       search,
+      wsId: wsManager.getWsId(),
     }),
     signal,
   })

@@ -3,6 +3,7 @@ import { streamChat, generateTitle } from '../api/stream'
 import { createMarkdownStreamParser } from '../utils/markdownStreamParser'
 import { modelApi } from '../api/model'
 import { ElMessage } from 'element-plus'
+import { wsManager } from '../utils/websocket'
 
 export const useChatStore = defineStore('chat', {
   state: () => ({
@@ -19,6 +20,7 @@ export const useChatStore = defineStore('chat', {
     isModelSwitched: localStorage.getItem('isModelSwitched') === 'true',
     abortController: null,
     newSessionId: null,
+    wsStatusMessage: '', // 存储 WebSocket 推送的状态消息
   }),
 
   getters: {
@@ -75,6 +77,19 @@ export const useChatStore = defineStore('chat', {
       const list = this.messagesMap[this.activeId] || []
       this.isStreaming = true
       this.abortController = new AbortController()
+      this.wsStatusMessage = '' // 发送前重置状态消息
+
+      // 订阅 WebSocket 状态消息
+      const unsubscribe = wsManager.onMessage(data => {
+        if (typeof data === 'string') {
+          this.wsStatusMessage = data
+        } else if (data && data.content && data.type === 'status') {
+          this.wsStatusMessage = data.content
+        } else if (data && typeof data === 'object' && !data.wsId) {
+          // 兜底处理：如果不是 wsId 消息，尝试展示 content
+          this.wsStatusMessage = data.content || data.message || this.wsStatusMessage
+        }
+      })
 
       const think = this.isThink
       const prompt = this.isPromptEnabled
@@ -165,11 +180,13 @@ export const useChatStore = defineStore('chat', {
         ElMessage.error(error.message || '发送消息失败')
         throw error
       } finally {
+        unsubscribe() // 取消订阅
         parser.end()
         currentMsg.streaming = false
         currentMsg.modelLoading = false // 确保结束时提示消失
         this.isStreaming = false
         this.abortController = null
+        this.wsStatusMessage = '' // 结束时清空
       }
 
       // 5️⃣ 如果是新对话，流式更新标题
