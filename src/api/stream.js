@@ -135,15 +135,23 @@ export async function generateTitle(id, onChunk) {
 export async function streamASR(fileName, onChunk) {
   const host = import.meta.env.VITE_API_HOST
   const token = localStorage.getItem('token')
-  const headers = {}
+  const headers = {
+    'Content-Type': 'text/plain',
+  }
   if (token) {
     headers['Authorization'] = `${token}`
   }
-  const res = await fetch(`${host}/audio/streamASR?fileName=${fileName}`, {
-    headers: {
-      ...headers,
-    },
+
+  const res = await fetch(`${host}/audio/streamASR`, {
+    method: 'POST',
+    headers: headers,
+    body: fileName, // 直接发送字符串作为请求体
   })
+
+  if (!res.ok) {
+    throw new Error(`ASR error! status: ${res.status}`)
+  }
+
   const reader = res.body.getReader()
   const decoder = new TextDecoder('utf-8')
 
@@ -162,8 +170,9 @@ export async function streamASR(fileName, onChunk) {
       if (!line.trim()) continue
 
       try {
-        const jsonLine = line.substring(5).trim()
-        // console.log(jsonLine)
+        // 兼容 "data: " 前缀
+        const jsonLine = line.startsWith('data:') ? line.substring(5).trim() : line.trim()
+        if (!jsonLine) continue
 
         const json = JSON.parse(jsonLine)
 
@@ -172,7 +181,7 @@ export async function streamASR(fileName, onChunk) {
           onChunk(json)
         }
       } catch (e) {
-        console.warn('parse error', e)
+        console.warn('parse error', e, 'on line:', line)
       }
     }
   }

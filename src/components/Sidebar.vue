@@ -268,11 +268,14 @@ const select = async (id, isAuto = false) => {
     if (sessionDetail && sessionDetail.messages) {
       // 将sessionVO中的messages转换为store中的格式
       const formattedMessages = sessionDetail.messages.map(msg => ({
-        id: Date.now() + Math.random(), // 生成唯一ID
+        id: msg.id || (Date.now() + Math.random()), // 优先使用后端ID
         role: msg.role,
         name: msg.name,
         thinking: msg.thinking || '',
         content: msg.content || '',
+        type: msg.audio ? 'audio' : 'text',
+        audioPath: msg.audio || '',
+        transcription: msg.audio ? msg.content : '', // 如果是语音消息，content 就是转写内容
         blocks: msg.content ? [{ type: 'text', content: msg.content }] : [],
       }))
 

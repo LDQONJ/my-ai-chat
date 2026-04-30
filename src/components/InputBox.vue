@@ -194,6 +194,32 @@ onUnmounted(() => {
 const isInputEmpty = computed(() => !text.value.trim())
 
 const send = async () => {
+
+  // 临时添加的测试指令逻辑
+  if (text.value.startsWith('/test-asr ')) {
+    const filePath = text.value.replace('/test-asr ', '').trim();
+    text.value = '';
+    
+    // 1. 创建一个语音消息气泡（假设没有正在上传）
+    const messageId = await store.sendAudio('', false);
+    
+    // 2. 模拟设置音频路径（可以是服务器已存在的路径，如 'uploads/test.wav'）
+    store.updateMessage(messageId, { 
+      audioPath: filePath,
+      uploading: false 
+    });
+
+    // 3. 触发流式转写
+    const transcription = await store.transcribeAudio(messageId, filePath);
+    
+    // 4. 转写完后触发 AI 回复（如果需要）
+    if (transcription) {
+      store.updateMessage(messageId, { content: transcription });
+      await store.sendStream(transcription, filePath, true);
+    }
+    return;
+  }
+
   if (store.isStreaming) {
     store.stopStream()
     return
