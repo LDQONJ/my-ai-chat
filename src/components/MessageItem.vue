@@ -165,6 +165,33 @@ const md = new MarkdownIt({
   },
 })
 
+// 自定义链接渲染，添加 target="_blank" 和 rel="noopener noreferrer"
+const defaultLinkRender =
+  md.renderer.rules.link_open ||
+  ((tokens, idx, options, env, self) => {
+    return self.renderToken(tokens, idx, options)
+  })
+
+md.renderer.rules.link_open = (tokens, idx, options, env, self) => {
+  const token = tokens[idx]
+  const targetIndex = token.attrIndex('target')
+  const relIndex = token.attrIndex('rel')
+
+  if (targetIndex < 0) {
+    token.attrPush(['target', '_blank'])
+  } else {
+    token.attrs[targetIndex][1] = '_blank'
+  }
+
+  if (relIndex < 0) {
+    token.attrPush(['rel', 'noopener noreferrer'])
+  } else {
+    token.attrs[relIndex][1] = 'noopener noreferrer'
+  }
+
+  return defaultLinkRender(tokens, idx, options, env, self)
+}
+
 const hasEnglishLetterRe = /[A-Za-z]/
 const englishFragmentRe = /[A-Za-z][\x20-\x7E\u00A0\u2018\u2019\u201C\u201D]*/g
 const longWordRe = /[A-Za-z][A-Za-z0-9_]{4,}/g
@@ -520,6 +547,39 @@ const handleMarkdownClick = event => {
   hyphens: manual;
   overflow-wrap: normal;
   word-break: normal;
+}
+
+.markdown :deep(a) {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+  border-bottom: 1px solid transparent;
+  transition: all 0.2s ease;
+  padding: 0 2px;
+  margin: 0 -2px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.markdown :deep(a::after) {
+  content: '↗';
+  font-size: 0.8em;
+  font-weight: normal;
+  display: inline-block;
+  transition: transform 0.2s ease;
+  opacity: 0.7;
+}
+
+.markdown :deep(a:hover) {
+  background-color: var(--bg-hover);
+  border-bottom-color: var(--primary);
+}
+
+.markdown :deep(a:hover::after) {
+  transform: translate(1px, -1px);
+  opacity: 1;
 }
 
 .markdown :deep(.cursor) {
