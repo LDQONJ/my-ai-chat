@@ -127,13 +127,17 @@ const startRecording = async () => {
 
       // 2. 异步上传
       const formData = new FormData()
-      formData.append('file', audioBlob, 'voice.webm')
+      formData.append('file', audioBlob, 'voice.wav')
 
       try {
         const res = await fileApi.upload(formData)
-        // 假设返回的 res 中包含文件路径
-        const filePath = res.path || res.url || (res.data && res.data.path)
+        // console.log('[录音上传响应]', res)
+        
+        // 更加鲁棒的路径获取逻辑
+        const filePath = typeof res === 'string' ? res : (res.path || res.url || (res.data && (res.data.path || res.data.url)) || res.data)
+        
         if (filePath) {
+          // console.log('[录音上传成功] 准备转文字, 路径:', filePath)
           // 3. 上传成功后更新消息内容为服务器路径，并移除上传状态
           store.updateMessage(messageId, {
             audioPath: filePath,
@@ -148,6 +152,9 @@ const startRecording = async () => {
             store.updateMessage(messageId, { content: transcription })
             await store.sendStream(transcription, filePath, true)
           }
+        } else {
+          console.warn('[录音上传成功] 但未解析到文件路径，响应内容:', res)
+          store.updateMessage(messageId, { uploading: false })
         }
       } catch (error) {
         console.error('上传录音失败:', error)

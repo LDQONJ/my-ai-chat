@@ -100,9 +100,17 @@ export const useChatStore = defineStore('chat', {
     },
 
     async transcribeAudio(messageId, fileName) {
-      const list = this.messagesMap[this.activeId] || []
-      const message = list.find(m => m.id === messageId)
-      if (!message) return ''
+      // 在所有会话中查找该消息，确保在切换会话或异步延迟时依然能找到
+      let message = null
+      for (const id in this.messagesMap) {
+        message = this.messagesMap[id].find(m => m.id === messageId)
+        if (message) break
+      }
+      
+      if (!message) {
+        console.error('[ASR] 未找到对应消息ID:', messageId)
+        return ''
+      }
 
       message.transcription = ''
       message.isTranscribing = true
@@ -151,7 +159,8 @@ export const useChatStore = defineStore('chat', {
       // 检查是否需要生成标题（对于新会话的第一条消息）
       const chat = this.chatList.find(c => c.id === this.activeId)
       const isNewSession = !chat || chat.title === '新对话'
-      const shouldGenerateTitle = isNewSession && list.length === 0
+      // 如果是语音消息，list.length 已经是 1 了，所以需要兼容处理
+      const shouldGenerateTitle = isNewSession && (list.length === 0 || (skipUserMsg && list.length === 1))
 
       // 如果会话不在列表中（正常情况下应该在），将其添加
       const isInChatList = !!chat
