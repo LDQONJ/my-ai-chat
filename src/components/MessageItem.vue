@@ -267,12 +267,12 @@ md.renderer.rules.link_open = (tokens, idx, options, env, self) => {
   return defaultLinkRender(tokens, idx, options, env, self)
 }
 
-const hasEnglishLetterRe = /[A-Za-z]/
-const englishFragmentRe = /[A-Za-z][\x20-\x7E\u00A0\u2018\u2019\u201C\u201D]*/g
-const longWordRe = /[A-Za-z][A-Za-z0-9_]{4,}/g
 const userLongWordRe = /[A-Za-z][A-Za-z0-9_]{4,}/g
 
 const insertSoftHyphens = text => {
+  // 匹配连续的 5 个及以上字符（包含英文字母、数字、冒号、连字符等）
+  // 这样可以覆盖 IPv6 地址、超长序列号等
+  const longWordRe = /[A-Za-z0-9:_-]{5,}/g
   return text.replace(longWordRe, word => word.split('').join('\u00AD'))
 }
 
@@ -286,6 +286,8 @@ const wrapEnglishWithLang = text => {
   let match
   let out = ''
   const escape = md.utils.escapeHtml
+  // englishFragmentRe 匹配英文片段，但不包含 Markdown 标记符号
+  const englishFragmentRe = /[A-Za-z][\x20-\x29\x2B-\x5E\x60-\x7E\u00A0\u2018\u2019\u201C\u201D]*/g
   englishFragmentRe.lastIndex = 0
 
   while ((match = englishFragmentRe.exec(text)) !== null) {
@@ -312,10 +314,10 @@ const wrapEnglishWithLang = text => {
   }
 
   if (!out) {
-    return escape(text)
+    return escape(insertSoftHyphens(text))
   }
   if (lastIndex < text.length) {
-    out += escape(text.slice(lastIndex))
+    out += escape(insertSoftHyphens(text.slice(lastIndex)))
   }
   return out
 }
@@ -327,6 +329,7 @@ md.renderer.rules.text = (tokens, idx) => {
 const defaultCodeInline = md.renderer.rules.code_inline
 md.renderer.rules.code_inline = (tokens, idx, options, env, self) => {
   const token = tokens[idx]
+  const hasEnglishLetterRe = /[A-Za-z]/
   if (token?.content && hasEnglishLetterRe.test(token.content)) {
     token.attrSet('lang', 'en')
     token.content = insertSoftHyphens(token.content)
@@ -373,34 +376,41 @@ function renderMarkdown(text, isLastBlock = false) {
 
   if (isLastBlock && props.message.streaming) {
     const cursor = '<span class="cursor"></span>'
-    const insertBefore =
-      html.lastIndexOf('</li>') !== -1
-        ? '</li>'
-        : html.lastIndexOf('</p>') !== -1
-          ? '</p>'
-          : html.lastIndexOf('</strong>') !== -1
-            ? '</strong>'
-            : html.lastIndexOf('</b>') !== -1
-              ? '</b>'
-              : html.lastIndexOf('</h6>') !== -1
-            ? '</h6>'
-            : html.lastIndexOf('</h5>') !== -1
-              ? '</h5>'
-              : html.lastIndexOf('</h4>') !== -1
-                ? '</h4>'
-                : html.lastIndexOf('</h3>') !== -1
-                  ? '</h3>'
-                  : html.lastIndexOf('</h2>') !== -1
-                    ? '</h2>'
-                    : html.lastIndexOf('</h1>') !== -1
-                      ? '</h1>'
-                      : html.lastIndexOf('</div>') !== -1
-                        ? '</div>'
-                        : null
+    // 查找最后出现的结束标签，确保光标插在最末尾的内容容器内
+    const tags = [
+      '</li>',
+      '</p>',
+      '</strong>',
+      '</b>',
+      '</u>',
+      '</i>',
+      '</s>',
+      '</code>',
+      '</th>',
+      '</td>',
+      '</h1>',
+      '</h2>',
+      '</h3>',
+      '</h4>',
+      '<h5>',
+      '</h6>',
+      '</blockquote>',
+      '</pre>',
+    ]
 
-    if (insertBefore) {
-      const idx = html.lastIndexOf(insertBefore)
-      html = html.slice(0, idx) + cursor + html.slice(idx)
+    let lastIdx = -1
+    let insertBeforeTag = null
+
+    for (const tag of tags) {
+      const idx = html.lastIndexOf(tag)
+      if (idx > lastIdx) {
+        lastIdx = idx
+        insertBeforeTag = tag
+      }
+    }
+
+    if (insertBeforeTag) {
+      html = html.slice(0, lastIdx) + cursor + html.slice(lastIdx)
     } else if (html.lastIndexOf('</') !== -1) {
       const idx = html.lastIndexOf('</')
       html = html.slice(0, idx) + cursor + html.slice(idx)
@@ -476,9 +486,7 @@ const handleMarkdownClick = event => {
   border-radius: 26px;
   font-size: var(--font-size-main);
   line-height: var(--line-height-main);
-  hyphenate-limit-chars: 0 0 0;
-  hyphens: auto;
-  overflow-wrap: break-word;
+  word-break: break-word;
   text-align: justify;
   text-justify: inter-ideograph;
   text-align-last: left;
