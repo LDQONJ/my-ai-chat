@@ -44,6 +44,20 @@
         </div>
 
         <button
+          class="record-btn"
+          :class="{ recording: isRecording }"
+          title="发送语音"
+          @click="toggleRecording"
+        >
+          <div class="send-icon">
+            <Icon
+              :icon-class="isRecording ? 'icon-stop' : 'icon-audio'"
+              :font-size="18"
+            />
+          </div>
+        </button>
+
+        <button
           class="send-btn"
           :class="{
             'stop-btn': store.isStreaming,
@@ -74,14 +88,102 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick } from 'vue'
+import { ref, computed, nextTick, onUnmounted } from 'vue'
 import { useChatStore } from '../store/chat'
 import Icon from '@/components/common/Icon.vue'
+import { fileApi } from '@/api/file'
 
 const text = ref('')
 const focus = ref(false)
 const store = useChatStore()
 const textareaRef = ref()
+
+const isRecording = ref(false)
+let mediaRecorder = null
+let audioChunks = []
+
+const startRecording = async () => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+    mediaRecorder = new MediaRecorder(stream)
+    audioChunks = []
+
+    mediaRecorder.ondataavailable = event => {
+      audioChunks.push(event.data)
+    }
+
+    mediaRecorder.onstop = async () => {
+      const audioBlob = new Blob(audioChunks, { type: 'audio/wav' })
+      
+      // 1. 先生成本地 URL 并立即显示气泡
+      const localUrl = URL.createObjectURL(audioBlob)
+      const messageId = await store.sendAudio(localUrl, true)
+
+      // 2. 异步上传
+      const formData = new FormData()
+      formData.append('file', audioBlob, 'voice.wav')
+
+      try {
+        const res = await fileApi.upload(formData)
+        // 假设返回的 res 中包含文件路径
+        const filePath = res.path || res.url || (res.data && res.data.path)
+        if (filePath) {
+          // 3. 上传成功后更新消息内容为服务器路径，并移除上传状态
+          store.updateMessage(messageId, {
+            audioPath: filePath,
+            uploading: false
+          })
+
+          // 4. 调用语音转文字
+          const transcription = await store.transcribeAudio(messageId, filePath)
+          
+          // 5. 转写完成后，更新 content 并触发 AI 回复
+          if (transcription) {
+            store.updateMessage(messageId, { content: transcription })
+            await store.sendStream(transcription, filePath, true)
+          }
+        }
+      } catch (error) {
+        console.error('上传录音失败:', error)
+        // 如果上传失败，可以给用户一个提示或者标记失败状态
+        store.updateMessage(messageId, {
+          uploading: false,
+          error: true
+        })
+      }
+
+      // 关闭流
+      stream.getTracks().forEach(track => track.stop())
+    }
+
+    mediaRecorder.start()
+    isRecording.value = true
+  } catch (err) {
+    console.error('无法启动录音:', err)
+    alert('无法启动录音，请确保已授予麦克风权限')
+  }
+}
+
+const stopRecording = () => {
+  if (mediaRecorder && isRecording.value) {
+    mediaRecorder.stop()
+    isRecording.value = false
+  }
+}
+
+const toggleRecording = () => {
+  if (isRecording.value) {
+    stopRecording()
+  } else {
+    startRecording()
+  }
+}
+
+onUnmounted(() => {
+  if (isRecording.value) {
+    stopRecording()
+  }
+})
 
 const isInputEmpty = computed(() => !text.value.trim())
 
@@ -278,6 +380,52 @@ textarea {
   bottom: 10px;
   /* 距离底部10px */
   flex-shrink: 0;
+}
+
+.record-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-sub);
+  border-radius: 25px;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: absolute;
+  right: 56px;
+  bottom: 10px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.record-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-main);
+  border-color: var(--primary);
+}
+
+.record-btn.recording {
+  background: #ef4444;
+  color: white;
+  border-color: #ef4444;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  70% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
 }
 
 .send-icon {

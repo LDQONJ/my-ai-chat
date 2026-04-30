@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { streamChat, generateTitle } from '../api/stream'
+import { streamChat, generateTitle, streamASR } from '../api/stream'
 import { createMarkdownStreamParser } from '../utils/markdownStreamParser'
 import { modelApi } from '../api/model'
 import { ElMessage } from 'element-plus'
@@ -71,7 +71,60 @@ export const useChatStore = defineStore('chat', {
       }
     },
 
-    async sendStream(text) {
+    async sendAudio(fileUrl, isUploading = false) {
+      if (this.isStreaming) return
+
+      const list = this.messagesMap[this.activeId] || []
+      const id = Date.now()
+      
+      // 用户语音消息
+      const msg = {
+        id,
+        role: 'user',
+        type: 'audio',
+        content: '', // 初始内容为空，后续填入转写文字
+        audioPath: fileUrl,
+        uploading: isUploading,
+      }
+      list.push(msg)
+
+      return id
+    },
+
+    updateMessage(messageId, updates) {
+      const list = this.messagesMap[this.activeId] || []
+      const index = list.findIndex(m => m.id === messageId)
+      if (index !== -1) {
+        list[index] = { ...list[index], ...updates }
+      }
+    },
+
+    async transcribeAudio(messageId, fileName) {
+      const list = this.messagesMap[this.activeId] || []
+      const message = list.find(m => m.id === messageId)
+      if (!message) return ''
+
+      message.transcription = ''
+      message.isTranscribing = true
+
+      let fullText = ''
+      try {
+        await streamASR(fileName, chunk => {
+          if (chunk.content) {
+            message.transcription += chunk.content
+            fullText += chunk.content
+          }
+        })
+        return fullText
+      } catch (error) {
+        console.error('语音转文字失败:', error)
+        return ''
+      } finally {
+        message.isTranscribing = false
+      }
+    },
+
+    async sendStream(text, audioFile = null, skipUserMsg = false) {
       if (this.isStreaming) return
 
       const list = this.messagesMap[this.activeId] || []
@@ -116,11 +169,13 @@ export const useChatStore = defineStore('chat', {
       }
 
       // 1️⃣ 用户消息
-      list.push({
-        id: Date.now(),
-        role: 'user',
-        content: text,
-      })
+      if (!skipUserMsg) {
+        list.push({
+          id: Date.now(),
+          role: 'user',
+          content: text,
+        })
+      }
 
       // 2️⃣ AI 消息（分块结构）
       const aiMsg = {
@@ -174,6 +229,7 @@ export const useChatStore = defineStore('chat', {
           this.abortController.signal,
           this.currentModelId,
           search,
+          audioFile,
         )
       } catch (error) {
         list.splice(list.length - 2, 2)

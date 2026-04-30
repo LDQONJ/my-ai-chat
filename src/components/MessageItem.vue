@@ -104,8 +104,26 @@
           alt="用户头像"
         />
       </div>
-      <div class="bubble user">
-        <div class="user-content">
+      <div class="bubble user" :class="{ 'audio-bubble': message.type === 'audio' }">
+        <div v-if="message.type === 'audio'" class="audio-content" @click="togglePlay">
+          <div class="play-btn">
+            <Icon :icon-class="isPlaying ? 'icon-pause' : 'icon-play'" :font-size="16" />
+          </div>
+          <div class="audio-wave">
+            <div v-for="n in 15" :key="n" class="wave-bar" :class="{ animating: isPlaying }"></div>
+          </div>
+          <span v-if="message.uploading" class="upload-loading">
+            <Icon :icon-class="'icon-loading'" :font-size="12" class="spin" />
+          </span>
+          <span v-else class="audio-duration">{{ durationText }}</span>
+        </div>
+        <div v-if="message.type === 'audio' && (message.transcription || message.isTranscribing)" class="transcription-content">
+          <div class="transcription-text">
+            {{ message.transcription }}
+            <span v-if="message.isTranscribing" class="transcribing-cursor"></span>
+          </div>
+        </div>
+        <div v-else-if="message.type !== 'audio'" class="user-content">
           {{ formatUserText(message.content) }}
         </div>
       </div>
@@ -117,7 +135,7 @@
 import MarkdownIt from 'markdown-it'
 import hljs from 'highlight.js'
 import DOMPurify from 'dompurify'
-import { nextTick, computed, ref } from 'vue'
+import { nextTick, computed, ref, onUnmounted, onMounted } from 'vue'
 import Icon from '@/components/common/Icon.vue'
 import { useUserStore } from '@/store/user'
 import { useChatStore } from '@/store/chat'
@@ -128,6 +146,62 @@ const props = defineProps({
 
 const userStore = useUserStore()
 const chatStore = useChatStore()
+
+// 语音播放相关
+const isPlaying = ref(false)
+const duration = ref(0)
+const audio = ref(null)
+
+const audioUrl = computed(() => {
+  if (props.message.type !== 'audio') return ''
+  const content = props.message.audioPath || props.message.content
+  if (!content) return ''
+  if (content.startsWith('http') || content.startsWith('blob:')) return content
+  const host = import.meta.env.VITE_API_HOST || ''
+  return `${host}${content}`
+})
+
+const durationText = computed(() => {
+  if (!duration.value) return '0:00'
+  const mins = Math.floor(duration.value / 60)
+  const secs = Math.floor(duration.value % 60)
+  return `${mins}:${secs.toString().padStart(2, '0')}`
+})
+
+const togglePlay = () => {
+  if (!audio.value) {
+    audio.value = new Audio(audioUrl.value)
+    audio.value.addEventListener('ended', () => {
+      isPlaying.value = false
+    })
+    audio.value.addEventListener('loadedmetadata', () => {
+      duration.value = audio.value.duration
+    })
+  }
+
+  if (isPlaying.value) {
+    audio.value.pause()
+  } else {
+    audio.value.play()
+  }
+  isPlaying.value = !isPlaying.value
+}
+
+onMounted(() => {
+  if (props.message.type === 'audio') {
+    const tempAudio = new Audio(audioUrl.value)
+    tempAudio.addEventListener('loadedmetadata', () => {
+      duration.value = tempAudio.duration
+    })
+  }
+})
+
+onUnmounted(() => {
+  if (audio.value) {
+    audio.value.pause()
+    audio.value = null
+  }
+})
 
 const userAvatar = computed(() => {
   if (!userStore.avatar) return userStore.defaultAvatar
@@ -324,7 +398,7 @@ function renderMarkdown(text, isLastBlock = false) {
   }
 
   return DOMPurify.sanitize(html, {
-    ADD_ATTR: ['class', 'lang'],
+    ADD_ATTR: ['class', 'lang', 'target', 'rel'],
     ADD_TAGS: ['div', 'span', 'pre', 'code'],
   })
 }
@@ -533,6 +607,133 @@ const handleMarkdownClick = event => {
 .msg.user .bubble .user-content {
   color: white;
   word-break: break-word;
+}
+
+/* 语音消息样式 */
+.bubble.user.audio-bubble {
+  background: var(--primary);
+  min-width: 160px;
+  cursor: pointer;
+  padding: 8px 12px;
+}
+
+.audio-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  color: white;
+}
+
+.play-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.play-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.audio-wave {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 20px;
+  flex: 1;
+}
+
+.wave-bar {
+  width: 3px;
+  height: 40%;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 2px;
+  transition: height 0.2s;
+}
+
+.wave-bar:nth-child(even) {
+  height: 60%;
+}
+
+.wave-bar:nth-child(3n) {
+  height: 80%;
+}
+
+.wave-bar.animating {
+  animation: wave 1s ease-in-out infinite;
+}
+
+.wave-bar.animating:nth-child(2n) {
+  animation-delay: 0.1s;
+}
+
+.wave-bar.animating:nth-child(3n) {
+  animation-delay: 0.2s;
+}
+
+.wave-bar.animating:nth-child(4n) {
+  animation-delay: 0.3s;
+}
+
+@keyframes wave {
+  0%, 100% {
+    height: 30%;
+  }
+  50% {
+    height: 100%;
+  }
+}
+
+.audio-duration {
+  font-size: 12px;
+  opacity: 0.8;
+  white-space: nowrap;
+}
+
+.transcription-content {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  width: 100%;
+}
+
+.transcription-text {
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.9);
+  word-break: break-word;
+  text-align: left;
+}
+
+.transcribing-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 14px;
+  background: white;
+  margin-left: 2px;
+  vertical-align: middle;
+  animation: blink 1s infinite;
+}
+
+.upload-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.8;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 /* markdown */
