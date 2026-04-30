@@ -51,8 +51,14 @@
         >
           <div class="send-icon">
             <Icon
-              :icon-class="isRecording ? 'icon-stop' : 'icon-audio'"
-              :font-size="18"
+              v-if="!isRecording"
+              :icon-class="'icon-audio'"
+              :font-size="17"
+            />
+            <Icon
+              v-else
+              :icon-class="'icon-stop'"
+              :font-size="14"
             />
           </div>
         </button>
@@ -121,7 +127,7 @@ const startRecording = async () => {
 
       // 2. 异步上传
       const formData = new FormData()
-      formData.append('file', audioBlob, 'voice.wav')
+      formData.append('file', audioBlob, 'voice.webm')
 
       try {
         const res = await fileApi.upload(formData)
@@ -301,7 +307,7 @@ const watchText = () => {
 
 .input-footer {
   width: 100%;
-  padding: 4px 8px;
+  padding: 4px;
   display: flex;
   justify-content: flex-start;
   gap: 8px;
@@ -369,15 +375,15 @@ textarea {
   border: none;
   color: white;
   border-radius: 25px;
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   cursor: pointer;
   transition: transform 0.1s;
   position: absolute;
   /* 绝对定位 */
-  right: 10px;
+  right: 8px;
   /* 距离右侧10px */
-  bottom: 10px;
+  bottom: 8px;
   /* 距离底部10px */
   flex-shrink: 0;
 }
@@ -387,13 +393,13 @@ textarea {
   border: 1px solid var(--border);
   color: var(--text-sub);
   border-radius: 25px;
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   cursor: pointer;
   transition: all 0.3s;
   position: absolute;
-  right: 56px;
-  bottom: 10px;
+  right: 52px;
+  bottom: 8px;
   flex-shrink: 0;
   display: flex;
   align-items: center;

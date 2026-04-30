@@ -226,6 +226,7 @@ const loadingText = computed(() => {
 })
 
 const md = new MarkdownIt({
+  html: true,
   breaks: true,
   highlight(str, lang) {
     if (lang && hljs.getLanguage(lang)) {
@@ -358,10 +359,17 @@ md.renderer.rules.fence = (tokens, idx, options, env, self) => {
 function renderMarkdown(text, isLastBlock = false) {
   const normalizedText = (text || '')
     .replace(/\\n/g, '\n')
-    .replace(/(^|\n)(\*\*[^*\n]+?\*\*)\n(?!\n)/g, '$1$2\n\n')
-    .replace(/(^|\n)(\s*\*\*[^*\n]+?\*\*)\s*([：:])\s*\n(?!\n)/g, '$1$2$3\n\n')
+    // 强制给列表符号前后增加换行，确保解析器能正确识别列表结构
+    .replace(/(^|\n)([*-]|\d+\.)\s/g, '$1\n$2 ')
+    .replace(/(^|\n)(#{1,6}\s+.+?)\n(?!\n)/g, '$1$2\n\n')
 
   let html = md.render(normalizedText)
+
+  // 针对中文环境下加粗解析失败的补救处理
+  // 仅在解析后的 HTML 中仍包含未处理的 ** 时进行精准替换
+  if (html.includes('**')) {
+    html = html.replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>')
+  }
 
   if (isLastBlock && props.message.streaming) {
     const cursor = '<span class="cursor"></span>'
@@ -370,7 +378,11 @@ function renderMarkdown(text, isLastBlock = false) {
         ? '</li>'
         : html.lastIndexOf('</p>') !== -1
           ? '</p>'
-          : html.lastIndexOf('</h6>') !== -1
+          : html.lastIndexOf('</strong>') !== -1
+            ? '</strong>'
+            : html.lastIndexOf('</b>') !== -1
+              ? '</b>'
+              : html.lastIndexOf('</h6>') !== -1
             ? '</h6>'
             : html.lastIndexOf('</h5>') !== -1
               ? '</h5>'
@@ -399,7 +411,7 @@ function renderMarkdown(text, isLastBlock = false) {
 
   return DOMPurify.sanitize(html, {
     ADD_ATTR: ['class', 'lang', 'target', 'rel'],
-    ADD_TAGS: ['div', 'span', 'pre', 'code'],
+    ADD_TAGS: ['div', 'span', 'pre', 'code', 'strong', 'b'],
   })
 }
 
@@ -759,18 +771,21 @@ const handleMarkdownClick = event => {
   padding: 0 2px;
   margin: 0 -2px;
   border-radius: 4px;
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
+  display: inline;
+  word-break: break-word;
 }
 
 .markdown :deep(a::after) {
   content: '↗';
-  font-size: 0.8em;
+  font-size: 0.7em;
   font-weight: normal;
   display: inline-block;
+  margin-left: 1px;
   transition: transform 0.2s ease;
   opacity: 0.7;
+  vertical-align: top;
+  position: relative;
+  top: 2px;
 }
 
 .markdown :deep(a:hover) {
