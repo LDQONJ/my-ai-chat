@@ -70,6 +70,10 @@
   --code-inline-bg: var(--code-inline-bg-light);
   --add-chat-bg: var(--add-chat-bg-light);
   color-scheme: light;
+
+  /* 安全区域适配 */
+  --safe-area-inset-top: env(safe-area-inset-top, 0px);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 /* 暗色模式主题 */

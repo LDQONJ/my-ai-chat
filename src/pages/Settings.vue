@@ -604,10 +604,13 @@ onMounted(() => {
 <style scoped lang="scss">
 .settings-page {
   height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   background-color: var(--bg-main);
   color: var(--text-main);
+  /* 确保整个页面容器也支持安全区域 */
+  padding-top: var(--safe-area-inset-top);
 }
 
 .settings-header {
@@ -616,6 +619,8 @@ onMounted(() => {
   align-items: center;
   padding: 0 20px;
   border-bottom: 1px solid var(--border);
+  background-color: var(--bg-main);
+  flex-shrink: 0;
 
   .icon-back {
     font-size: 20px;
@@ -649,7 +654,7 @@ onMounted(() => {
 .settings-content {
   flex: 1;
   overflow-y: auto;
-  padding: 12px 16px;
+  padding: 12px 16px calc(24px + var(--safe-area-inset-bottom));
   margin: 0 auto;
   width: 100%;
   display: flex;
