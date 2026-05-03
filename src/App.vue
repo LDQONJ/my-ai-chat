@@ -13,11 +13,55 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { Capacitor } from '@capacitor/core'
+import { App as CapApp } from '@capacitor/app'
+import { Browser } from '@capacitor/browser'
+import { updateApi } from '@/api/update'
+import { ElMessageBox } from 'element-plus'
 
 const route = useRoute()
 const transitionName = ref('')
+
+const checkUpdate = async () => {
+  // 仅在原生 Android 平台执行
+  if (Capacitor.getPlatform() !== 'android') return
+
+  try {
+    const info = await CapApp.getInfo()
+
+    const res = await updateApi.checkUpdate({
+      versionName: 'v' + info.version,
+
+    })
+
+    // 如果返回 "yes"，说明有新版本
+    if (res === 'yes') {
+      ElMessageBox.confirm('发现新版本应用，是否立即下载更新？', '检查更新', {
+        confirmButtonText: '立即下载',
+        cancelButtonText: '稍后再说',
+        type: 'info',
+      })
+        .then(async () => {
+          const baseUrl = import.meta.env.VITE_API_HOST || ''
+          const downloadUrl = `${baseUrl}/updates/latestRelease`
+
+          // 使用系统浏览器打开下载链接
+          await Browser.open({ url: downloadUrl })
+        })
+        .catch(() => {
+          // 用户取消更新
+        })
+    }
+  } catch (error) {
+    console.error('[更新检查失败]', error)
+  }
+}
+
+onMounted(() => {
+  checkUpdate()
+})
 
 watch(
   () => route.path,

@@ -564,7 +564,7 @@ watch(
   top: 0;
   left: var(--sidebar-width);
   right: 0;
-  height: calc(100px + var(--safe-area-inset-top));
+  height: calc(75px + var(--safe-area-inset-top));
   background-color: var(--bg-main);
   -webkit-mask-image: linear-gradient(to bottom, black 65%, transparent 100%);
   mask-image: linear-gradient(to bottom, black 65%, transparent 100%);

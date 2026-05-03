@@ -115,12 +115,31 @@ samp {
   letter-spacing: var(--letter-spacing);
 }
 
+html,
 body {
   margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: var(--font-family-text);
   background: var(--bg-main);
   color: var(--text-main);
-  font-family: var(--font-family-text);
   letter-spacing: var(--letter-spacing);
+  /* 禁止双指缩放，仅允许滚动 */
+  touch-action: pan-x pan-y;
+  /* 禁止系统默认的长按选择文字行为（可选，增加原生感） */
+  -webkit-touch-callout: none;
+}
+
+/* 隐藏全局滚动条但保持可滚动 */
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+*::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/Webkit (Android WebView) */
 }
 
 * {

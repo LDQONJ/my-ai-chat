@@ -1,14 +1,44 @@
 apply plugin: 'com.android.application'
 
+def versionPropsFile = file('version.properties')
+def versionProps = new Properties()
+
+if (versionPropsFile.canRead()) {
+    versionProps.load(new FileInputStream(versionPropsFile))
+} else {
+    versionProps['VERSION_CODE'] = '1'
+    versionProps['VERSION_NAME'] = '1.0.0'
+}
+
+def vCode = versionProps['VERSION_CODE'].toInteger()
+def vName = versionProps['VERSION_NAME']
+
+// 只有在执行打包任务时才增加版本号
+gradle.taskGraph.whenReady { taskGraph ->
+    if (taskGraph.hasTask(':app:assembleRelease')) {
+        vCode = vCode + 1
+        // 自动更新版本名末尾数字，例如 1.0.0 -> 1.0.1
+        def parts = vName.split('\\.')
+        if (parts.length >= 3) {
+            def lastPart = parts[2].toInteger() + 1
+            vName = "${parts[0]}.${parts[1]}.${lastPart}".toString()
+        }
+        
+        versionProps['VERSION_CODE'] = vCode.toString()
+        versionProps['VERSION_NAME'] = vName.toString()
+        versionProps.store(versionPropsFile.newWriter(), null)
+    }
+}
+
 android {
-    namespace "com.example.app"
+    namespace "work.daqian.ai"
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.example.app"
+        applicationId "work.daqian.ai"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode vCode
+        versionName vName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -18,14 +48,26 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            
+            // 自定义生成的 APK 文件名
+            applicationVariants.all { variant ->
+                variant.outputs.all { output ->
+                    def date = new Date().format('yyyyMMdd')
+                    def newName = "LDQ's_AI-v${vName}-${date}-${variant.buildType.name}.apk"
+                    outputFileName = newName
+                }
+            }
         }
     }
     configurations {
         all {
             exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk7'
             exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
+            
+            // 解决 androidx.browser:browser:1.9.0 要求 API 36 的冲突
+            resolutionStrategy.force 'androidx.browser:browser:1.8.0'
         }
     }
 }
