@@ -14,80 +14,78 @@
 
         <!-- 深度思考 & 联网搜索按钮 -->
         <div class="input-footer">
-          <button
-            class="think-btn"
-            :class="{ active: store.isThink }"
-            @click="store.toggleThink"
-          >
-            <div class="think-icon">
-              <Icon
-                :icon-class="'icon-deepseek'"
-                :font-size="13"
-              />
-            </div>
-            <span>深度思考</span>
-          </button>
+          <div class="footer-left">
+            <button
+              class="think-btn"
+              :class="{ active: store.isThink }"
+              @click="store.toggleThink"
+            >
+              <div class="think-icon">
+                <Icon
+                  :icon-class="'icon-deepseek'"
+                  :font-size="13"
+                />
+              </div>
+              <span>深度思考</span>
+            </button>
 
-          <button
-            class="think-btn"
-            :class="{ active: store.isSearch }"
-            @click="store.toggleSearch"
-          >
-            <div class="think-icon">
-              <Icon
-                :icon-class="'icon-web'"
-                :font-size="13"
-              />
-            </div>
-            <span>联网搜索</span>
-          </button>
+            <button
+              class="think-btn"
+              :class="{ active: store.isSearch }"
+              @click="store.toggleSearch"
+            >
+              <div class="think-icon">
+                <Icon
+                  :icon-class="'icon-web'"
+                  :font-size="13"
+                />
+              </div>
+              <span>联网搜索</span>
+            </button>
+          </div>
+
+          <div class="footer-right">
+            <button
+              class="record-btn"
+              :class="{ recording: isRecording }"
+              title="发送语音"
+              @click="toggleRecording"
+            >
+              <div class="send-icon">
+                <Icon
+                  :icon-class="!isRecording ? 'icon-audio' : 'icon-stop'"
+                  :font-size="!isRecording ? 17 : 14"
+                />
+              </div>
+            </button>
+
+            <button
+              class="send-btn"
+              :class="{
+                'stop-btn': store.isStreaming,
+                disabled: isInputEmpty && !store.isStreaming,
+              }"
+              :disabled="isInputEmpty && !store.isStreaming"
+              :title="isInputEmpty && !store.isStreaming ? '请输入内容' : ''"
+              @click="send"
+            >
+              <div class="send-icon">
+                <!-- 停止图标 -->
+                <Icon
+                  v-if="store.isStreaming"
+                  :icon-class="'icon-stop'"
+                  :font-size="14"
+                />
+                <!-- 发送图标 -->
+                <Icon
+                  v-else
+                  :icon-class="'icon-up-arrow'"
+                  :font-size="17"
+                />
+              </div>
+            </button>
+          </div>
         </div>
-
-        <button
-          class="record-btn"
-          :class="{ recording: isRecording }"
-          title="发送语音"
-          @click="toggleRecording"
-        >
-          <div class="send-icon">
-            <Icon
-              v-if="!isRecording"
-              :icon-class="'icon-audio'"
-              :font-size="17"
-            />
-            <Icon
-              v-else
-              :icon-class="'icon-stop'"
-              :font-size="14"
-            />
-          </div>
-        </button>
-
-        <button
-          class="send-btn"
-          :class="{
-            'stop-btn': store.isStreaming,
-            disabled: isInputEmpty && !store.isStreaming,
-          }"
-          :disabled="isInputEmpty && !store.isStreaming"
-          :title="isInputEmpty && !store.isStreaming ? '请输入内容' : ''"
-          @click="send"
-        >
-          <div class="send-icon">
-            <!-- 停止图标 -->
-            <Icon
-              v-if="store.isStreaming"
-              :icon-class="'icon-stop'"
-              :font-size="14"
-            />
-            <!-- 发送图标 -->
-            <Icon
-              v-else
-              :icon-class="'icon-up-arrow'"
-              :font-size="17"
-            />
-          </div>
-        </button>
       </div>
     </div>
   </div>
@@ -98,6 +96,7 @@ import { ref, computed, nextTick, onUnmounted } from 'vue'
 import { useChatStore } from '../store/chat'
 import Icon from '@/components/common/Icon.vue'
 import { fileApi } from '@/api/file'
+import { streamTTS } from '@/api/stream'
 
 const text = ref('')
 const focus = ref(false)
@@ -201,6 +200,19 @@ onUnmounted(() => {
 const isInputEmpty = computed(() => !text.value.trim())
 
 const send = async () => {
+
+  // 测试 TTS 指令
+  if (text.value.startsWith('/test-tts ')) {
+    const messageId = text.value.replace('/test-tts ', '').trim()
+    text.value = ''
+    try {
+      await streamTTS(messageId)
+    } catch (error) {
+      console.error('TTS 测试失败:', error)
+      alert('TTS 测试失败: ' + error.message)
+    }
+    return
+  }
 
   // 临时添加的测试指令逻辑
   if (text.value.startsWith('/test-asr ')) {
@@ -340,9 +352,17 @@ const watchText = () => {
 
 .input-footer {
   width: 100%;
-  padding: 4px;
+  padding: 4px 8px;
   display: flex;
-  justify-content: flex-start;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.footer-left,
+.footer-right {
+  display: flex;
+  align-items: center;
   gap: 8px;
 }
 
@@ -389,17 +409,15 @@ textarea {
   /* 最小高度 */
   max-height: 200px;
   /* 最大高度限制 */
-  line-height: 1.4;
+  line-height: 1.5;
   font-family: inherit;
-  font-size: 16px;
+  font-size: 15px;
   overflow-y: auto;
-  padding: 8px;
-  hyphenate-limit-chars: 0 0 0;
-  hyphens: auto;
+  padding: 12px;
+  /* 增加 padding 使其更美观 */
+  word-break: break-all;
   overflow-wrap: break-word;
-  text-align: justify;
-  text-justify: inter-ideograph;
-  text-align-last: left;
+  text-align: left;
   /* 内容超出时显示滚动条 */
 }
 
@@ -412,12 +430,6 @@ textarea {
   height: 34px;
   cursor: pointer;
   transition: transform 0.1s;
-  position: absolute;
-  /* 绝对定位 */
-  right: 8px;
-  /* 距离右侧10px */
-  bottom: 8px;
-  /* 距离底部10px */
   flex-shrink: 0;
 }
 
@@ -430,9 +442,6 @@ textarea {
   height: 34px;
   cursor: pointer;
   transition: all 0.3s;
-  position: absolute;
-  right: 52px;
-  bottom: 8px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
