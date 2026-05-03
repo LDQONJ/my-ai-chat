@@ -444,7 +444,7 @@ watch(
 /* 顶部标题样式 */
 .top-title-container {
   position: fixed;
-  top: 15px;
+  top: calc(15px + var(--safe-area-inset-top));
   left: calc(var(--sidebar-width) + 120px);
   right: 120px;
   height: 35px;
@@ -480,7 +480,7 @@ watch(
 /* 侧边栏收起时左上角组合按钮 */
 .top-left-actions {
   position: fixed;
-  top: 15px;
+  top: calc(15px + var(--safe-area-inset-top));
   left: 20px;
   height: 36px;
   padding: 0 4px;
@@ -521,7 +521,7 @@ watch(
 
 .top-right-actions {
   position: fixed;
-  top: 15px;
+  top: calc(15px + var(--safe-area-inset-top));
   right: 20px;
   height: 36px;
   padding: 0 3px;
@@ -564,10 +564,10 @@ watch(
   top: 0;
   left: var(--sidebar-width);
   right: 0;
-  height: 70px;
+  height: calc(75px + var(--safe-area-inset-top));
   background-color: var(--bg-main);
-  -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
-  mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 65%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 65%, transparent 100%);
   z-index: 100;
   /* 确保在所有内容之上 */
   pointer-events: none;
@@ -611,7 +611,7 @@ watch(
   }
 
   .main {
-    padding: 4px 4px 8px;
+    padding: 0 4px 8px;
   }
 
   .input-container {
@@ -637,7 +637,7 @@ watch(
 
 .input-container {
   position: fixed;
-  bottom: 0;
+  bottom: var(--safe-area-inset-bottom);
   left: var(--sidebar-width);
   right: 0;
   display: flex;
@@ -653,7 +653,7 @@ watch(
 
 .footer-container {
   position: fixed;
-  bottom: 0;
+  bottom: var(--safe-area-inset-bottom);
   left: var(--sidebar-width);
   right: 0;
   display: flex;

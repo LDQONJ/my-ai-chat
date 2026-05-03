@@ -465,7 +465,7 @@ onMounted(() => {
 .sidebar {
   width: var(--sidebar-width);
   background: var(--bg-sidebar);
-  padding: 16px 16px 0 16px;
+  padding: calc(16px + var(--safe-area-inset-top)) 16px 0 16px;
   border-right: 1px solid var(--border);
   transition:
     width 0.3s ease,
@@ -481,7 +481,7 @@ onMounted(() => {
 }
 
 .sidebar-hidden .sidebar {
-  padding: 16px 0;
+  padding: calc(16px + var(--safe-area-inset-top)) 0;
   border-right: none;
 }
 

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">LDQ\'s AI</string>
+    <string name="title_activity_main">LDQ\'s AI</string>
+    <string name="package_name">work.daqian.ai</string>
+    <string name="custom_url_scheme">work.daqian.ai</string>
+</resources>

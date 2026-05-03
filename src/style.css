@@ -70,6 +70,10 @@
   --code-inline-bg: var(--code-inline-bg-light);
   --add-chat-bg: var(--add-chat-bg-light);
   color-scheme: light;
+
+  /* 安全区域适配 */
+  --safe-area-inset-top: env(safe-area-inset-top, 0px);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 /* 暗色模式主题 */
@@ -111,12 +115,33 @@ samp {
   letter-spacing: var(--letter-spacing);
 }
 
+html,
 body {
   margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: var(--font-family-text);
   background: var(--bg-main);
   color: var(--text-main);
-  font-family: var(--font-family-text);
   letter-spacing: var(--letter-spacing);
+  /* 禁止双指缩放，仅允许滚动 */
+  touch-action: pan-x pan-y;
+  /* 禁止系统默认的长按选择文字行为（可选，增加原生感） */
+  -webkit-touch-callout: none;
+}
+
+/* 隐藏全局滚动条但保持可滚动 (仅在移动端或根据需要) */
+@media (max-width: 768px) {
+  * {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+  }
+
+  *::-webkit-scrollbar {
+    display: none; /* Chrome/Safari/Webkit (Android WebView) */
+  }
 }
 
 * {

@@ -1,4 +1,6 @@
 import { defineStore } from 'pinia'
+import { StatusBar, Style } from '@capacitor/status-bar'
+import { Capacitor } from '@capacitor/core'
 import githubLightUrl from 'highlight.js/styles/github.css?url'
 import githubDarkUrl from 'highlight.js/styles/github-dark.css?url'
 
@@ -52,6 +54,14 @@ export const useThemeStore = defineStore('theme', {
       }
 
       this.systemTheme = getSystemTheme()
+      
+      // 初始化状态栏为沉浸式（仅在原生平台）
+      if (Capacitor.isNativePlatform()) {
+        StatusBar.setOverlaysWebView({ overlay: true }).catch(() => {})
+        // 确保 Android 状态栏背景彻底透明，不带任何系统遮罩
+        StatusBar.setBackgroundColor({ color: '#00000000' }).catch(() => {})
+      }
+
       this.apply()
 
       const media = window.matchMedia('(prefers-color-scheme: dark)')
@@ -142,6 +152,13 @@ export const useThemeStore = defineStore('theme', {
       hljsLink.href = t === 'dark' ? githubDarkUrl : githubLightUrl
 
       setMetaThemeColor(t === 'dark' ? '#0f172a' : '#ffffff')
+
+      // 同步原生状态栏样式
+      if (Capacitor.isNativePlatform()) {
+        StatusBar.setStyle({
+          style: t === 'dark' ? Style.Dark : Style.Light,
+        }).catch(() => {})
+      }
     },
   },
 })
